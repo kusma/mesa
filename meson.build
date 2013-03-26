@@ -132,7 +132,7 @@ if _drivers.contains('auto')
     elif ['arm', 'aarch64'].contains(host_machine.cpu_family())
       _drivers = [
         'kmsro', 'v3d', 'vc4', 'freedreno', 'etnaviv', 'nouveau',
-        'tegra', 'virgl', 'lima', 'swrast'
+        'tegra', 'grate', 'virgl', 'lima', 'swrast'
       ]
     else
       error('Unknown architecture @0@. Please pass -Dgallium-drivers to set driver options. Patches gladly accepted to fix this.'.format(
@@ -157,6 +157,7 @@ with_gallium_v3d = _drivers.contains('v3d')
 with_gallium_panfrost = _drivers.contains('panfrost')
 with_gallium_etnaviv = _drivers.contains('etnaviv')
 with_gallium_tegra = _drivers.contains('tegra')
+with_gallium_grate = _drivers.contains('grate')
 with_gallium_iris = _drivers.contains('iris')
 with_gallium_i915 = _drivers.contains('i915')
 with_gallium_svga = _drivers.contains('svga')
@@ -1186,6 +1187,10 @@ if dep_libdrm.found()
   if with_dri_platform == 'drm' and with_dri
     with_gallium_drisw_kms = true
   endif
+endif
+
+if with_gallium_grate
+  dep_libdrm_tegra = dependency('libdrm_tegra', version : '>= 2.4.81')
 endif
 
 llvm_modules = ['bitwriter', 'engine', 'mcdisassembler', 'mcjit']
