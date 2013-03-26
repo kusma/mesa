@@ -32,6 +32,9 @@ subdir('drivers/radeonsi')
 subdir('drivers/nouveau')
 subdir('drivers/freedreno')
 subdir('drivers/softpipe')
+if with_gallium_tegra
+  subdir('drivers/tegra')
+endif
 if with_gallium_vc4
   subdir('drivers/vc4')
 endif
@@ -53,6 +56,9 @@ subdir('winsys/radeon/drm')
 subdir('winsys/amdgpu/drm')
 subdir('winsys/nouveau/drm')
 subdir('winsys/freedreno/drm')
+if with_gallium_tegra
+  subdir('winsys/tegra/drm')
+endif
 if with_gallium_vc4
   subdir('winsys/vc4/drm')
 endif
