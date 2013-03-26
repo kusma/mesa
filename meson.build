@@ -129,6 +129,7 @@ with_gallium_r600 = false
 with_gallium_nouveau = false
 with_gallium_freedreno = false
 with_gallium_softpipe = false
+with_gallium_tegra = false
 with_gallium_vc4 = false
 with_gallium_vc5 = false
 with_gallium_etnaviv = false
@@ -163,6 +164,7 @@ if _drivers != ''
   with_gallium_nouveau = _split.contains('nouveau')
   with_gallium_freedreno = _split.contains('freedreno')
   with_gallium_softpipe = _split.contains('swrast')
+  with_gallium_tegra = _split.contains('tegra')
   with_gallium_vc4 = _split.contains('vc4')
   with_gallium_vc5 = _split.contains('vc5')
   with_gallium_etnaviv = _split.contains('etnaviv')
@@ -971,6 +973,7 @@ dep_libdrm_radeon = []
 dep_libdrm_nouveau = []
 dep_libdrm_etnaviv = []
 dep_libdrm_freedreno = []
+dep_libdrm_tegra = []
 if with_amd_vk or with_gallium_radeonsi
   dep_libdrm_amdgpu = dependency('libdrm_amdgpu', version : '>= 2.4.89')
 endif
@@ -986,6 +989,9 @@ if with_gallium_etnaviv
 endif
 if with_gallium_freedreno
   dep_libdrm_freedreno = dependency('libdrm_freedreno', version : '>= 2.4.89')
+endif
+if with_gallium_tegra
+  dep_libdrm_tegra = dependency('libdrm_tegra', version : '>= 2.4.81')
 endif
 
 llvm_modules = ['bitwriter', 'engine', 'mcdisassembler', 'mcjit']
