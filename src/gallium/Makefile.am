@@ -89,6 +89,11 @@ if HAVE_GALLIUM_SWR
 SUBDIRS += drivers/swr
 endif
 
+## grate
+if HAVE_GALLIUM_GRATE
+SUBDIRS += drivers/grate winsys/grate/drm
+endif
+
 ## vc4/rpi
 if HAVE_GALLIUM_VC4
 SUBDIRS += drivers/vc4 winsys/vc4/drm
