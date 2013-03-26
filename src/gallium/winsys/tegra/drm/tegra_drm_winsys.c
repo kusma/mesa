@@ -25,14 +25,13 @@
 
 #include "util/u_debug.h"
 
+#ifdef GALLIUM_TEGRA
+
 #include "tegra/tegra_screen.h"
 
-struct pipe_screen *tegra_drm_screen_create(int fd);
-
-struct pipe_screen *tegra_drm_screen_create(int fd)
+static struct pipe_screen *create_tegra_screen(int fd)
 {
    struct pipe_screen *screen;
-
    /*
     * NOTE: There are reportedly issues with reusing the file descriptor
     * as-is related to Xinerama. Duplicate it to side-step any issues.
@@ -46,4 +45,44 @@ struct pipe_screen *tegra_drm_screen_create(int fd)
       close(fd);
 
    return screen;
+}
+
+#endif
+
+#ifdef GALLIUM_GRATE
+
+#include <libdrm/tegra.h>
+#include "grate/grate_screen.h"
+
+static struct pipe_screen *create_grate_screen(int fd)
+{
+  struct drm_tegra *drm;
+  int err = drm_tegra_new(&drm, fd);
+  if (err < 0)
+     return NULL;
+
+  return grate_screen_create(drm);
+}
+
+#endif
+
+struct pipe_screen *tegra_drm_screen_create(int fd);
+
+struct pipe_screen *tegra_drm_screen_create(int fd)
+{
+   struct pipe_screen *screen;
+
+#ifdef GALLIUM_TEGRA
+   screen = create_tegra_screen(fd);
+   if (screen != NULL)
+      return screen;
+#endif
+
+#ifdef GALLIUM_GRATE
+   screen = create_grate_screen(fd);
+   if (screen != NULL)
+      return screen;
+#endif
+
+   return NULL;
 }

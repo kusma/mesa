@@ -132,7 +132,7 @@ if _drivers.contains('auto')
     elif ['arm', 'aarch64'].contains(host_machine.cpu_family())
       _drivers = [
         'pl111', 'v3d', 'vc4', 'freedreno', 'etnaviv', 'imx', 'nouveau',
-        'tegra', 'virgl', 'swrast',
+        'tegra', 'grate', 'virgl', 'swrast',
       ]
     else
       error('Unknown architecture. Please pass -Dgallium-drivers to set driver options. Patches gladly accepted to fix this.')
@@ -155,6 +155,7 @@ with_gallium_v3d = _drivers.contains('v3d')
 with_gallium_etnaviv = _drivers.contains('etnaviv')
 with_gallium_imx = _drivers.contains('imx')
 with_gallium_tegra = _drivers.contains('tegra')
+with_gallium_grate = _drivers.contains('grate')
 with_gallium_i915 = _drivers.contains('i915')
 with_gallium_svga = _drivers.contains('svga')
 with_gallium_virgl = _drivers.contains('virgl')
@@ -204,6 +205,10 @@ if with_gallium_pl111 and not with_gallium_vc4
 endif
 if with_gallium_tegra and not with_gallium_nouveau
   error('tegra driver requires nouveau driver')
+endif
+dep_libdrm_tegra = null_dep
+if with_gallium_grate
+  dep_libdrm_tegra = dependency('libdrm_tegra', version : '>= 2.4.81')
 endif
 
 if host_machine.system() == 'darwin'

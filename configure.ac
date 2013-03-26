@@ -81,6 +81,7 @@ LIBDRM_NOUVEAU_REQUIRED=2.4.66
 LIBDRM_FREEDRENO_REQUIRED=2.4.92
 LIBDRM_ETNAVIV_REQUIRED=2.4.89
 LIBDRM_VC4_REQUIRED=2.4.89
+LIBDRM_TEGRA_REQUIRED=2.4.81
 
 dnl Versions for external dependencies
 DRI2PROTO_REQUIRED=2.8
@@ -1374,7 +1375,7 @@ GALLIUM_DRIVERS_DEFAULT="r300,r600,svga,swrast"
 AC_ARG_WITH([gallium-drivers],
     [AS_HELP_STRING([--with-gallium-drivers@<:@=DIRS...@:>@],
         [comma delimited Gallium drivers list, e.g.
-        "i915,nouveau,r300,r600,radeonsi,freedreno,pl111,svga,swrast,swr,tegra,v3d,vc4,virgl,etnaviv,imx"
+        "i915,nouveau,r300,r600,radeonsi,freedreno,pl111,svga,swrast,swr,tegra,grate,v3d,vc4,virgl,etnaviv,imx"
         @<:@default=r300,r600,svga,swrast@:>@])],
     [with_gallium_drivers="$withval"],
     [with_gallium_drivers="$GALLIUM_DRIVERS_DEFAULT"])
@@ -2666,6 +2667,12 @@ if test -n "$with_gallium_drivers"; then
             ;;
         xtegra)
             HAVE_GALLIUM_TEGRA=yes
+            HAVE_GALLIUM_TEGRA_WINSYS=yes
+            ;;
+        xgrate)
+            HAVE_GALLIUM_GRATE=yes
+            HAVE_GALLIUM_TEGRA_WINSYS=yes
+            PKG_CHECK_MODULES([GRATE], [libdrm_tegra >= $LIBDRM_TEGRA_REQUIRED])
             require_libdrm "tegra"
             ;;
         xswrast)
@@ -2894,6 +2901,8 @@ AM_CONDITIONAL(HAVE_GALLIUM_FREEDRENO, test "x$HAVE_GALLIUM_FREEDRENO" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_ETNAVIV, test "x$HAVE_GALLIUM_ETNAVIV" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_IMX, test "x$HAVE_GALLIUM_IMX" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_TEGRA, test "x$HAVE_GALLIUM_TEGRA" = xyes)
+AM_CONDITIONAL(HAVE_GALLIUM_TEGRA_WINSYS, test "x$HAVE_GALLIUM_TEGRA_WINSYS" = xyes)
+AM_CONDITIONAL(HAVE_GALLIUM_GRATE, test "x$HAVE_GALLIUM_GRATE" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_SOFTPIPE, test "x$HAVE_GALLIUM_SOFTPIPE" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_LLVMPIPE, test "x$HAVE_GALLIUM_LLVMPIPE" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_SWR, test "x$HAVE_GALLIUM_SWR" = xyes)
@@ -3041,6 +3050,7 @@ AC_CONFIG_FILES([Makefile
                  src/gallium/drivers/svga/Makefile
                  src/gallium/drivers/swr/Makefile
                  src/gallium/drivers/tegra/Makefile
+                 src/gallium/drivers/grate/Makefile
                  src/gallium/drivers/etnaviv/Makefile
                  src/gallium/drivers/imx/Makefile
                  src/gallium/drivers/v3d/Makefile

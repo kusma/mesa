@@ -80,7 +80,15 @@ endif
 
 ## tegra
 if HAVE_GALLIUM_TEGRA
-SUBDIRS += drivers/tegra winsys/tegra/drm
+SUBDIRS += drivers/tegra
+endif
+
+if HAVE_GALLIUM_GRATE
+SUBDIRS += drivers/grate
+endif
+
+if HAVE_GALLIUM_TEGRA_WINSYS
+SUBDIRS += winsys/tegra/drm
 endif
 
 ## vc4/rpi
