@@ -80,6 +80,7 @@ LIBDRM_NVVIEUX_REQUIRED=2.4.66
 LIBDRM_NOUVEAU_REQUIRED=2.4.66
 LIBDRM_FREEDRENO_REQUIRED=2.4.74
 LIBDRM_ETNAVIV_REQUIRED=2.4.82
+LIBDRM_TEGRA_REQUIRED=2.4.81
 
 dnl Versions for external dependencies
 DRI2PROTO_REQUIRED=2.8
@@ -1250,7 +1251,7 @@ GALLIUM_DRIVERS_DEFAULT="r300,r600,svga,swrast"
 AC_ARG_WITH([gallium-drivers],
     [AS_HELP_STRING([--with-gallium-drivers@<:@=DIRS...@:>@],
         [comma delimited Gallium drivers list, e.g.
-        "i915,nouveau,r300,r600,radeonsi,freedreno,pl111,svga,swrast,swr,vc4,virgl,etnaviv,imx"
+        "i915,nouveau,r300,r600,radeonsi,freedreno,pl111,svga,swrast,swr,vc4,virgl,etnaviv,imx,tegra"
         @<:@default=r300,r600,svga,swrast@:>@])],
     [with_gallium_drivers="$withval"],
     [with_gallium_drivers="$GALLIUM_DRIVERS_DEFAULT"])
@@ -2576,6 +2577,11 @@ if test -n "$with_gallium_drivers"; then
                 require_basic_egl "virgl"
             fi
             ;;
+        xtegra)
+            HAVE_GALLIUM_TEGRA=yes
+            PKG_CHECK_MODULES([TEGRA], [libdrm_tegra >= $LIBDRM_TEGRA_REQUIRED])
+            require_libdrm "tegra"
+            ;;
         *)
             AC_MSG_ERROR([Unknown Gallium driver: $driver])
             ;;
@@ -2689,6 +2695,7 @@ AM_CONDITIONAL(HAVE_GALLIUM_SWRAST, test "x$HAVE_GALLIUM_SOFTPIPE" = xyes -o \
                                          "x$HAVE_GALLIUM_SWR" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_VC4, test "x$HAVE_GALLIUM_VC4" = xyes)
 AM_CONDITIONAL(HAVE_GALLIUM_VIRGL, test "x$HAVE_GALLIUM_VIRGL" = xyes)
+AM_CONDITIONAL(HAVE_GALLIUM_TEGRA, test "x$HAVE_GALLIUM_TEGRA" = xyes)
 
 AM_CONDITIONAL(HAVE_GALLIUM_STATIC_TARGETS, test "x$enable_shared_pipe_drivers" = xno)
 
@@ -2831,6 +2838,7 @@ AC_CONFIG_FILES([Makefile
                  src/gallium/drivers/softpipe/Makefile
                  src/gallium/drivers/svga/Makefile
                  src/gallium/drivers/swr/Makefile
+                 src/gallium/drivers/tegra/Makefile
                  src/gallium/drivers/trace/Makefile
                  src/gallium/drivers/etnaviv/Makefile
                  src/gallium/drivers/imx/Makefile
@@ -2877,6 +2885,7 @@ AC_CONFIG_FILES([Makefile
                  src/gallium/winsys/sw/null/Makefile
                  src/gallium/winsys/sw/wrapper/Makefile
                  src/gallium/winsys/sw/xlib/Makefile
+                 src/gallium/winsys/tegra/drm/Makefile
                  src/gallium/winsys/vc4/drm/Makefile
                  src/gallium/winsys/virgl/drm/Makefile
                  src/gallium/winsys/virgl/vtest/Makefile
