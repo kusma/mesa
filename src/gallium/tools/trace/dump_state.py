@@ -188,7 +188,7 @@ class Screen(Dispatcher):
     def context_create(self):
         return Context(self.interpreter)
     
-    def is_format_supported(self, format, target, sample_count, bind, geom_flags):
+    def is_format_supported(self, format, target, sample_count, bind):
         pass
     
     def resource_create(self, templat):
