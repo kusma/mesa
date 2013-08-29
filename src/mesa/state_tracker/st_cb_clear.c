@@ -370,9 +370,8 @@ is_color_masked(struct gl_context *ctx, int i)
 static INLINE GLboolean
 is_stencil_masked(struct gl_context *ctx, struct gl_renderbuffer *rb)
 {
-   const GLuint stencilMax = 0xff;
-
-   assert(_mesa_get_format_bits(rb->Format, GL_STENCIL_BITS) > 0);
+   GLuint stencilMax = (1 << _mesa_get_format_bits(rb->Format, GL_STENCIL_BITS)) - 1;
+   assert(stencilMax > 0);
    return (ctx->Stencil.WriteMask[0] & stencilMax) != stencilMax;
 }
 
