@@ -193,6 +193,9 @@ st_create_context_priv( struct gl_context *ctx, struct pipe_context *pipe,
          (PIPE_QUIRK_TEXTURE_BORDER_COLOR_SWIZZLE_NV50 |
           PIPE_QUIRK_TEXTURE_BORDER_COLOR_SWIZZLE_R600));
 
+   st->clear_respects_scissor = screen->get_param(screen,
+                                          PIPE_CAP_CLEAR_RESPECTS_SCISSOR);
+
    /* GL limits and extensions */
    st_init_limits(st);
    st_init_extensions(st);

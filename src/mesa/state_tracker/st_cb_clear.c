@@ -407,7 +407,7 @@ st_Clear(struct gl_context *ctx, GLbitfield mask)
             if (!strb || !strb->surface)
                continue;
 
-            if (is_scissor_enabled(ctx, rb) ||
+            if ((!st->clear_respects_scissor && is_scissor_enabled(ctx, rb)) ||
                 is_color_masked(ctx, colormask_index))
                quad_buffers |= PIPE_CLEAR_COLOR;
             else
@@ -420,7 +420,7 @@ st_Clear(struct gl_context *ctx, GLbitfield mask)
       struct st_renderbuffer *strb = st_renderbuffer(depthRb);
 
       if (strb->surface) {
-         if (is_scissor_enabled(ctx, depthRb))
+         if (!st->clear_respects_scissor && is_scissor_enabled(ctx, depthRb))
             quad_buffers |= PIPE_CLEAR_DEPTH;
          else
             clear_buffers |= PIPE_CLEAR_DEPTH;
@@ -430,7 +430,7 @@ st_Clear(struct gl_context *ctx, GLbitfield mask)
       struct st_renderbuffer *strb = st_renderbuffer(stencilRb);
 
       if (strb->surface) {
-         if (is_scissor_enabled(ctx, stencilRb) ||
+         if ((!st->clear_respects_scissor && is_scissor_enabled(ctx, stencilRb)) ||
              is_stencil_masked(ctx, stencilRb))
             quad_buffers |= PIPE_CLEAR_STENCIL;
          else
