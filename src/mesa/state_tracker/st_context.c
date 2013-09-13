@@ -439,6 +439,9 @@ st_create_context_priv( struct gl_context *ctx, struct pipe_context *pipe,
    st->has_multi_draw_indirect =
       screen->get_param(screen, PIPE_CAP_MULTI_DRAW_INDIRECT);
 
+   st->clear_respects_scissor = screen->get_param(screen,
+                                          PIPE_CAP_CLEAR_RESPECTS_SCISSOR);
+
    /* GL limits and extensions */
    st_init_limits(pipe->screen, &ctx->Const, &ctx->Extensions);
    st_init_extensions(pipe->screen, &ctx->Const,
