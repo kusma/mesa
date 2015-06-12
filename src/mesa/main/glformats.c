@@ -1737,6 +1737,376 @@ _mesa_get_nongeneric_internalformat(GLenum format)
 
 
 /**
+ * Return the equivalent base-format for a given (non-compressed) color
+ * internal-format.
+ */
+static GLenum
+get_color_base_internalformat(GLenum internalformat)
+{
+   switch (internalformat) {
+
+   /**
+    * OpenGL 1.0 backward compatibility
+    *
+    * TODO: this hack should really be peeled off much earlier,
+    * by replacing these in glTexImage[1-3]D(), which is the only
+    * function that is required to support this.
+    */
+
+   case 1:
+      return GL_LUMINANCE;
+   case 2:
+      return GL_LUMINANCE_ALPHA;
+   case 3:
+      return GL_RGB;
+   case 4:
+      return GL_RGBA;
+
+   /**
+    * Based on OpenGL 4.5 (Compatibility Profile) specification,
+    * tables 8.19 and 8.20:
+    */
+
+   case GL_ALPHA4:
+   case GL_ALPHA8:
+   case GL_ALPHA12:
+   case GL_ALPHA16:
+   case GL_ALPHA:
+      return GL_ALPHA;
+
+   case GL_R8:
+   case GL_R8_SNORM:
+   case GL_R16:
+   case GL_R16_SNORM:
+   case GL_R16F:
+   case GL_R32F:
+   case GL_R8I:
+   case GL_R8UI:
+   case GL_R16I:
+   case GL_R16UI:
+   case GL_R32I:
+   case GL_R32UI:
+   case GL_RED:
+      return GL_RED;
+
+   case GL_RG8:
+   case GL_RG8_SNORM:
+   case GL_RG16:
+   case GL_RG16_SNORM:
+   case GL_RG16F:
+   case GL_RG32F:
+   case GL_RG8I:
+   case GL_RG8UI:
+   case GL_RG16I:
+   case GL_RG16UI:
+   case GL_RG32I:
+   case GL_RG32UI:
+   case GL_RG:
+      return GL_RG;
+
+   case GL_SRGB:
+   case GL_R3_G3_B2:
+   case GL_RGB4:
+   case GL_RGB5:
+   case GL_RGB565: /* defined in ARB_ES2_compatibility */
+   case GL_RGB8:
+   case GL_RGB8_SNORM:
+   case GL_RGB10:
+   case GL_RGB12:
+   case GL_RGB16:
+   case GL_RGB16_SNORM:
+   case GL_SRGB8:
+   case GL_RGB16F:
+   case GL_RGB32F:
+   case GL_R11F_G11F_B10F:
+   case GL_RGB9_E5:
+   case GL_RGB8I:
+   case GL_RGB8UI:
+   case GL_RGB16I:
+   case GL_RGB16UI:
+   case GL_RGB32I:
+   case GL_RGB32UI:
+   case GL_RGB:
+      return GL_RGB;
+
+   case GL_SRGB_ALPHA:
+   case GL_RGBA2:
+   case GL_RGBA4:
+   case GL_RGB5_A1:
+   case GL_RGBA8:
+   case GL_RGBA8_SNORM:
+   case GL_RGB10_A2:
+   case GL_RGBA12:
+   case GL_RGBA16:
+   case GL_RGBA16_SNORM:
+   case GL_SRGB8_ALPHA8:
+   case GL_RGBA16F:
+   case GL_RGBA32F:
+   case GL_RGBA8I:
+   case GL_RGBA8UI:
+   case GL_RGBA16I:
+   case GL_RGBA16UI:
+   case GL_RGBA32I:
+   case GL_RGBA32UI:
+   case GL_RGBA:
+      return GL_RGBA;
+
+   case GL_LUMINANCE4:
+   case GL_LUMINANCE8:
+   case GL_LUMINANCE12:
+   case GL_LUMINANCE16:
+   case GL_LUMINANCE:
+   case GL_SLUMINANCE:
+      return GL_LUMINANCE;
+
+   case GL_LUMINANCE4_ALPHA4:
+   case GL_LUMINANCE6_ALPHA2:
+   case GL_LUMINANCE8_ALPHA8:
+   case GL_LUMINANCE12_ALPHA4:
+   case GL_LUMINANCE12_ALPHA12:
+   case GL_LUMINANCE16_ALPHA16:
+   case GL_LUMINANCE_ALPHA:
+   case GL_SLUMINANCE_ALPHA:
+   case GL_SLUMINANCE8_ALPHA8:
+      return GL_LUMINANCE_ALPHA;
+
+   case GL_INTENSITY4:
+   case GL_INTENSITY8:
+   case GL_INTENSITY12:
+   case GL_INTENSITY16:
+   case GL_INTENSITY:
+      return GL_INTENSITY;
+
+
+   /**
+    * ARB_texture_float
+    */
+
+   case GL_ALPHA16F_ARB:
+   case GL_ALPHA32F_ARB:
+       return GL_ALPHA;
+
+   case GL_LUMINANCE32F_ARB:
+   case GL_LUMINANCE16F_ARB:
+       return GL_LUMINANCE;
+
+   case GL_INTENSITY32F_ARB:
+   case GL_INTENSITY16F_ARB:
+       return GL_INTENSITY;
+
+   case GL_LUMINANCE_ALPHA32F_ARB:
+   case GL_LUMINANCE_ALPHA16F_ARB:
+       return GL_LUMINANCE_ALPHA;
+
+
+   /**
+    * EXT_texture_integer
+    */
+
+   case GL_ALPHA8I_EXT:
+   case GL_ALPHA8UI_EXT:
+   case GL_ALPHA16I_EXT:
+   case GL_ALPHA16UI_EXT:
+   case GL_ALPHA32I_EXT:
+   case GL_ALPHA32UI_EXT:
+      return GL_ALPHA;
+
+   case GL_LUMINANCE8I_EXT:
+   case GL_LUMINANCE8UI_EXT:
+   case GL_LUMINANCE16I_EXT:
+   case GL_LUMINANCE16UI_EXT:
+   case GL_LUMINANCE32I_EXT:
+   case GL_LUMINANCE32UI_EXT:
+      return GL_LUMINANCE;
+
+   case GL_LUMINANCE_ALPHA8I_EXT:
+   case GL_LUMINANCE_ALPHA8UI_EXT:
+   case GL_LUMINANCE_ALPHA16I_EXT:
+   case GL_LUMINANCE_ALPHA16UI_EXT:
+   case GL_LUMINANCE_ALPHA32I_EXT:
+   case GL_LUMINANCE_ALPHA32UI_EXT:
+      return GL_LUMINANCE_ALPHA;
+
+   case GL_INTENSITY8I_EXT:
+   case GL_INTENSITY8UI_EXT:
+   case GL_INTENSITY16I_EXT:
+   case GL_INTENSITY16UI_EXT:
+   case GL_INTENSITY32I_EXT:
+   case GL_INTENSITY32UI_EXT:
+      return GL_INTENSITY;
+
+
+   /**
+    * ARB_texture_rgb10_a2ui:
+    */
+
+   case GL_RGB10_A2UI:
+      return GL_RGBA;
+
+   /*
+    * These are weird:
+    *
+    * Their definition comes from EXT_texture_snorm, they are not even
+    * mentioned in the OpenGL 3.3 specification. But the OpenGL 3.3 spec
+    * and EXT_texture_snorm disagree about all SNORM variations's base
+    * internal format.
+    *
+    * Since the OpenGL spec takes presedence, all sized versions have
+    * non-SNORM base internal format, but the unsized ones have SNORM
+    * base internal formats.
+    *
+    * The concequence of this is that unsized SNORM formats are never
+    * color-renderable. This is inconsistent with non-SNORM formats,
+    * but whatever.
+    */
+
+   case GL_RED_SNORM: return GL_RED_SNORM;
+   case GL_RG_SNORM: return GL_RG_SNORM;
+   case GL_RGB_SNORM: return GL_RGB_SNORM;
+   case GL_RGBA_SNORM: return GL_RGBA_SNORM;
+   case GL_ALPHA8_SNORM: return GL_ALPHA8_SNORM;
+   case GL_ALPHA16_SNORM: return GL_ALPHA16_SNORM;
+   case GL_ALPHA_SNORM: return GL_ALPHA_SNORM;
+   case GL_LUMINANCE8_SNORM: return GL_LUMINANCE8_SNORM;
+   case GL_LUMINANCE16_SNORM: return GL_LUMINANCE16_SNORM;
+   case GL_LUMINANCE_SNORM: return GL_LUMINANCE_SNORM;
+   case GL_LUMINANCE8_ALPHA8_SNORM: return GL_LUMINANCE8_ALPHA8_SNORM;
+   case GL_LUMINANCE16_ALPHA16_SNORM: return GL_LUMINANCE16_ALPHA16_SNORM;
+   case GL_LUMINANCE_ALPHA_SNORM: return GL_LUMINANCE_ALPHA_SNORM;
+   case GL_INTENSITY8_SNORM: return GL_INTENSITY8_SNORM;
+   case GL_INTENSITY16_SNORM: return GL_INTENSITY16_SNORM;
+   case GL_INTENSITY_SNORM: return GL_INTENSITY_SNORM;
+
+   default:
+      return GL_NONE;
+   }
+}
+
+
+/**
+ * Check if an OpenGL internalformat is color-renderable
+ */
+GLboolean
+_mesa_is_color_renderable_format(const struct gl_context *ctx,
+                                 GLint format)
+{
+   if (_mesa_is_desktop_gl(ctx)) {
+
+      /**
+       * OpenGL 4.5 spec, section 9.4 says:
+       *
+       * "An internal format is color-renderable if it is RED, RG, RGB,
+       * RGBA, or one of the sized internal formats from table 8.12 whose
+       * “CR” (color-renderable) column is checked in that table No other
+       * formats, including compressed internal formats, are
+       * color-renderable."
+       *
+       * RGB9_E5 is the only internal-format with RED, RG, RGB or RGBA
+       * that is not checked in the spec.
+       *
+       * EXT_texture_shared_exponent also define RGB9_E5 as not
+       * color-renderable.
+       */
+      if (format == GL_RGB9_E5)
+         return GL_FALSE;
+
+      switch (get_color_base_internalformat(format)) {
+
+      /**
+       * ARB_framebuffer_object defines these color-renderable, but
+       * they are removed from OpenGL 3.1 core
+       */
+      case GL_ALPHA:
+      case GL_LUMINANCE:
+      case GL_LUMINANCE_ALPHA:
+      case GL_INTENSITY:
+        return ctx->API == API_OPENGL_COMPAT &&
+               ctx->Extensions.ARB_framebuffer_object;
+
+      case GL_RED:
+      case GL_RG:
+         return ctx->Extensions.ARB_texture_rg;
+
+      case GL_RGB:
+      case GL_RGBA:
+         return GL_TRUE;
+      }
+
+      return GL_FALSE;
+   } else {
+      /**
+       * OpenGL ES 2.0 spec, section 4.4.5 says:
+       *
+       * "Formats not listed in table 4.5, including compressed internal
+       * formats. are not color-, depth-, or stencil-renderable, no matter
+       * which components they contain."
+       *
+       */
+
+      switch (format) {
+
+      /**
+       * dEQP assumes that unsized formats are color-renderable, but
+       * them not being defined as such being a spec-bug. They refer
+       * to the following issue in the closed Khronos bugzilla:
+       *
+       * https://cvs.khronos.org/bugzilla/show_bug.cgi?id=7333
+       */
+      case GL_RGB:
+      case GL_RGBA:
+         return GL_TRUE;
+
+      /**
+       * OpenGL ES 2.0 spec, table 4.5 lists these formats
+       */
+      case GL_RGBA4:
+      case GL_RGB5_A1:
+      case GL_RGB565:
+      case GL_RGB8: /* OES_rgb8_rgba8 */
+      case GL_RGBA8: /* OES_rgb8_rgba8 */
+         return GL_TRUE;
+
+      /**
+       * The OpenGL ES extension EXT_texture_rg adds these formats
+       */
+      case GL_R8:
+      case GL_RG8:
+         return ctx->Extensions.ARB_texture_rg;
+
+      /**
+       * OpenGL ES 3.0 spec, table 3.13 adds these sized internal
+       * color formats as color-renderable.
+       */
+      case GL_RGB10_A2:
+      case GL_RGB10_A2UI:
+      case GL_SRGB8_ALPHA8:
+      case GL_R8I:
+      case GL_R8UI:
+      case GL_R16I:
+      case GL_R16UI:
+      case GL_R32I:
+      case GL_R32UI:
+      case GL_RG8I:
+      case GL_RG8UI:
+      case GL_RG16I:
+      case GL_RG16UI:
+      case GL_RG32I:
+      case GL_RG32UI:
+      case GL_RGBA8I:
+      case GL_RGBA8UI:
+      case GL_RGBA16I:
+      case GL_RGBA16UI:
+      case GL_RGBA32I:
+      case GL_RGBA32UI:
+         return _mesa_is_gles3(ctx);
+      }
+
+      return GL_FALSE;
+   }
+}
+
+
+/**
  * Convert an sRGB internal format to linear.
  */
 GLenum

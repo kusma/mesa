@@ -123,6 +123,10 @@ _mesa_generic_compressed_format_to_uncompressed_format(GLenum format);
 extern GLenum
 _mesa_get_nongeneric_internalformat(GLenum format);
 
+extern GLboolean
+_mesa_is_color_renderable_format(const struct gl_context *ctx,
+                                 GLint format);
+
 extern GLenum
 _mesa_get_linear_internalformat(GLenum format);
 
