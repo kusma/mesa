@@ -1957,25 +1957,42 @@ get_color_base_internalformat(GLenum internalformat)
     *
     * The concequence of this is that unsized SNORM formats are never
     * color-renderable. This is inconsistent with non-SNORM formats,
-    * but whatever.
+    * and those SNORM-formats listed in the OpenGL specification, so
+    * let's instead assume that this is a spec-error, and treat these
+    * formats in a sane way.
     */
 
-   case GL_RED_SNORM: return GL_RED_SNORM;
-   case GL_RG_SNORM: return GL_RG_SNORM;
-   case GL_RGB_SNORM: return GL_RGB_SNORM;
-   case GL_RGBA_SNORM: return GL_RGBA_SNORM;
-   case GL_ALPHA8_SNORM: return GL_ALPHA8_SNORM;
-   case GL_ALPHA16_SNORM: return GL_ALPHA16_SNORM;
-   case GL_ALPHA_SNORM: return GL_ALPHA_SNORM;
-   case GL_LUMINANCE8_SNORM: return GL_LUMINANCE8_SNORM;
-   case GL_LUMINANCE16_SNORM: return GL_LUMINANCE16_SNORM;
-   case GL_LUMINANCE_SNORM: return GL_LUMINANCE_SNORM;
-   case GL_LUMINANCE8_ALPHA8_SNORM: return GL_LUMINANCE8_ALPHA8_SNORM;
-   case GL_LUMINANCE16_ALPHA16_SNORM: return GL_LUMINANCE16_ALPHA16_SNORM;
-   case GL_LUMINANCE_ALPHA_SNORM: return GL_LUMINANCE_ALPHA_SNORM;
-   case GL_INTENSITY8_SNORM: return GL_INTENSITY8_SNORM;
-   case GL_INTENSITY16_SNORM: return GL_INTENSITY16_SNORM;
-   case GL_INTENSITY_SNORM: return GL_INTENSITY_SNORM;
+   case GL_RED_SNORM:
+      return GL_RED;
+
+   case GL_RG_SNORM:
+      return GL_RG;
+
+   case GL_RGB_SNORM:
+      return GL_RGB;
+
+   case GL_RGBA_SNORM:
+      return GL_RGBA;
+
+   case GL_ALPHA8_SNORM:
+   case GL_ALPHA16_SNORM:
+   case GL_ALPHA_SNORM:
+      return GL_ALPHA;
+
+   case GL_LUMINANCE8_SNORM:
+   case GL_LUMINANCE16_SNORM:
+   case GL_LUMINANCE_SNORM:
+      return GL_LUMINANCE;
+
+   case GL_LUMINANCE8_ALPHA8_SNORM:
+   case GL_LUMINANCE16_ALPHA16_SNORM:
+   case GL_LUMINANCE_ALPHA_SNORM:
+      return GL_LUMINANCE_ALPHA;
+
+   case GL_INTENSITY8_SNORM:
+   case GL_INTENSITY16_SNORM:
+   case GL_INTENSITY_SNORM:
+      return GL_INTENSITY;
 
    default:
       return GL_NONE;
