@@ -841,7 +841,7 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
          if (baseFormat == GL_DEPTH_COMPONENT) {
             /* OK */
          }
-         else if (ctx->Extensions.ARB_depth_texture &&
+         else if (ctx->Extensions.ARB_framebuffer_object &&
                   baseFormat == GL_DEPTH_STENCIL) {
             /* OK */
          }
