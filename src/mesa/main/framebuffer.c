@@ -485,8 +485,6 @@ _mesa_update_framebuffer_visual(struct gl_context *ctx,
    for (i = 0; i < BUFFER_COUNT; i++) {
       if (fb->Attachment[i].Renderbuffer) {
          const struct gl_renderbuffer *rb = fb->Attachment[i].Renderbuffer;
-         const GLenum baseFormat = _mesa_get_format_base_format(rb->Format);
-         const mesa_format fmt = rb->Format;
 
          /* Grab samples and sampleBuffers from any attachment point (assuming
           * the framebuffer is complete, we'll get the same answer from all
@@ -495,7 +493,8 @@ _mesa_update_framebuffer_visual(struct gl_context *ctx,
          fb->Visual.samples = rb->NumSamples;
          fb->Visual.sampleBuffers = rb->NumSamples > 0 ? 1 : 0;
 
-         if (_mesa_is_legal_color_format(ctx, baseFormat)) {
+         if (_mesa_is_color_format(rb->InternalFormat)) {
+            const mesa_format fmt = rb->Format;
             fb->Visual.redBits = _mesa_get_format_bits(fmt, GL_RED_BITS);
             fb->Visual.greenBits = _mesa_get_format_bits(fmt, GL_GREEN_BITS);
             fb->Visual.blueBits = _mesa_get_format_bits(fmt, GL_BLUE_BITS);
