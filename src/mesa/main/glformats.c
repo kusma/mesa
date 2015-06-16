@@ -2122,6 +2122,151 @@ _mesa_is_color_renderable_format(const struct gl_context *ctx,
    }
 }
 
+/**
+ * Return the equivalent base-format for a given depth internal-format.
+ */
+static GLenum
+get_depth_stencil_base_internalformat(GLenum internalformat)
+{
+   switch (internalformat) {
+
+   /**
+    * Based on OpenGL 4.5 (Compatibility Profile) specification,
+    * tables 8.21
+    */
+
+   case GL_DEPTH_COMPONENT16:
+   case GL_DEPTH_COMPONENT24:
+   case GL_DEPTH_COMPONENT32:
+   case GL_DEPTH_COMPONENT32F:
+   case GL_DEPTH_COMPONENT:
+      return GL_DEPTH_COMPONENT;
+
+   case GL_DEPTH24_STENCIL8:
+   case GL_DEPTH32F_STENCIL8:
+   case GL_DEPTH_STENCIL:
+      return GL_DEPTH_STENCIL;
+
+   case GL_STENCIL_INDEX1:
+   case GL_STENCIL_INDEX4:
+   case GL_STENCIL_INDEX8:
+   case GL_STENCIL_INDEX16:
+      return GL_STENCIL_INDEX;
+
+   default:
+      return GL_NONE;
+   }
+}
+
+
+/**
+ * Check if an OpenGL internalformat is depth-renderable
+ */
+GLboolean
+_mesa_is_depth_renderable_format(const struct gl_context *ctx,
+                                 GLint format)
+{
+   if (_mesa_is_desktop_gl(ctx)) {
+
+      /**
+       * OpenGL 4.5 spec, section 9.4 says:
+       *
+       * "An internal format is depth-renderable if it is DEPTH_COMPONENT
+       * or one of the formats from table 8.21 whose base internal format
+       * is DEPTH_COMPONENT or DEPTH_STENCIL. No other formats are
+       * depth-renderable."
+       */
+
+      switch (get_depth_stencil_base_internalformat(format)) {
+      case GL_DEPTH_COMPONENT:
+         return GL_TRUE;
+
+      case GL_DEPTH_STENCIL:
+         /* TODO: figure out the real connection here:
+          * ARB_depth_texture allows making textures with depth-formats
+          * EXT_packed_depth_stencil makes DEPTH_STENCIL depth-renderable
+          *
+          * return ctx->API == API_OPENGL_COMPAT &&
+          *        ctx->Extensions.ARB_depth_texture;
+          */
+         return GL_TRUE;
+      }
+
+      return GL_FALSE;
+   } else {
+      /**
+       * OpenGL ES 2.0 spec, section 4.4.5 says:
+       *
+       * "Formats not listed in table 4.5, including compressed internal
+       * formats. are not color-, depth-, or stencil-renderable, no matter
+       * which components they contain."
+       */
+
+      switch (format) {
+      case GL_DEPTH_COMPONENT16: /* OpenGL ES 2.0 spec, table 4.5 */
+      case GL_DEPTH_COMPONENT24: /* OES_depth24 */
+         return GL_TRUE;
+
+      /* OpenGL ES 3.0 */
+      case GL_DEPTH_COMPONENT32F:
+      case GL_DEPTH24_STENCIL8:
+      case GL_DEPTH32F_STENCIL8:
+         return _mesa_is_gles3(ctx);
+      }
+
+      return GL_FALSE;
+   }
+}
+
+
+/**
+ * Check if an OpenGL internalformat is stencil-renderable
+ */
+GLboolean
+_mesa_is_stencil_renderable_format(const struct gl_context *ctx,
+                                   GLint format)
+{
+   if (_mesa_is_desktop_gl(ctx)) {
+
+      /**
+       * OpenGL 4.5 spec, section 9.4 says:
+       *
+       * "An internal format is stencil-renderable if it is STENCIL_INDEX,
+       * DEPTH_STENCIL, or one of the formats from table 8.21 whose base
+       * internal format is STENCIL_INDEX or DEPTH_STENCIL. No other
+       * formats are stencilrenderable."
+       */
+
+      switch (get_depth_stencil_base_internalformat(format)) {
+      case GL_STENCIL_INDEX:
+      case GL_DEPTH_STENCIL:
+         return GL_TRUE;
+      }
+
+      return GL_FALSE;
+   } else {
+      /**
+       * OpenGL ES 2.0 spec, section 4.4.5 says:
+       *
+       * "Formats not listed in table 4.5, including compressed internal
+       * formats. are not color-, depth-, or stencil-renderable, no matter
+       * which components they contain."
+       */
+
+      switch (format) {
+      case GL_STENCIL_INDEX8: /* OpenGL ES 2.0 spec, table 4.5 */
+         return GL_TRUE;
+
+      /* OpenGL ES 3.0 */
+      case GL_DEPTH24_STENCIL8:
+      case GL_DEPTH32F_STENCIL8:
+         return _mesa_is_gles3(ctx);
+      }
+
+      return GL_FALSE;
+   }
+}
+
 
 /**
  * Convert an sRGB internal format to linear.

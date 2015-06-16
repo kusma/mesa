@@ -714,7 +714,6 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
    if (att->Type == GL_TEXTURE) {
       const struct gl_texture_object *texObj = att->Texture;
       struct gl_texture_image *texImage;
-      GLenum baseFormat;
 
       if (!texObj) {
          att_incomplete("no texobj");
@@ -765,8 +764,6 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
          break;
       }
 
-      baseFormat = texImage->_BaseFormat;
-
       if (format == GL_COLOR) {
          if (!_mesa_is_color_renderable_format(ctx, texImage->InternalFormat)) {
             att_incomplete("bad format");
@@ -792,14 +789,7 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
          }
       }
       else if (format == GL_DEPTH) {
-         if (baseFormat == GL_DEPTH_COMPONENT) {
-            /* OK */
-         }
-         else if (ctx->Extensions.ARB_framebuffer_object &&
-                  baseFormat == GL_DEPTH_STENCIL) {
-            /* OK */
-         }
-         else {
+         if (!_mesa_is_depth_renderable_format(ctx, texImage->InternalFormat)) {
             att->Complete = GL_FALSE;
             att_incomplete("bad depth format");
             return;
@@ -807,12 +797,7 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
       }
       else {
          assert(format == GL_STENCIL);
-         if (ctx->Extensions.ARB_framebuffer_object &&
-             baseFormat == GL_DEPTH_STENCIL) {
-            /* OK */
-         } else if (baseFormat == GL_STENCIL_INDEX) {
-            /* OK */
-         } else {
+         if (!_mesa_is_stencil_renderable_format(ctx, texImage->InternalFormat)) {
             att_incomplete("illegal stencil texture");
             att->Complete = GL_FALSE;
             return;
@@ -820,8 +805,6 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
       }
    }
    else if (att->Type == GL_RENDERBUFFER_EXT) {
-      const GLenum baseFormat = att->Renderbuffer->_BaseFormat;
-
       assert(att->Renderbuffer);
       if (!att->Renderbuffer->InternalFormat ||
           att->Renderbuffer->Width < 1 ||
@@ -838,13 +821,7 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
          }
       }
       else if (format == GL_DEPTH) {
-         if (baseFormat == GL_DEPTH_COMPONENT) {
-            /* OK */
-         }
-         else if (baseFormat == GL_DEPTH_STENCIL) {
-            /* OK */
-         }
-         else {
+         if (!_mesa_is_depth_renderable_format(ctx, att->Renderbuffer->InternalFormat)) {
             att_incomplete("bad renderbuffer depth format");
             att->Complete = GL_FALSE;
             return;
@@ -852,11 +829,7 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
       }
       else {
          assert(format == GL_STENCIL);
-         if (baseFormat == GL_STENCIL_INDEX ||
-             baseFormat == GL_DEPTH_STENCIL) {
-            /* OK */
-         }
-         else {
+         if (!_mesa_is_stencil_renderable_format(ctx, att->Renderbuffer->InternalFormat)) {
             att->Complete = GL_FALSE;
             att_incomplete("bad renderbuffer stencil format");
             return;
