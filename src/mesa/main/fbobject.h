@@ -108,9 +108,6 @@ extern void
 _mesa_test_framebuffer_completeness(struct gl_context *ctx,
                                     struct gl_framebuffer *fb);
 
-extern GLboolean
-_mesa_is_legal_color_format(const struct gl_context *ctx, GLenum baseFormat);
-
 extern GLenum
 _mesa_base_fbo_format(struct gl_context *ctx, GLenum internalFormat);
 

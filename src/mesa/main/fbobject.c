@@ -655,31 +655,6 @@ fbo_incomplete(struct gl_context *ctx, const char *msg, int index)
 
 
 /**
- * Is the given base format a legal format for a color renderbuffer?
- */
-GLboolean
-_mesa_is_legal_color_format(const struct gl_context *ctx, GLenum baseFormat)
-{
-   switch (baseFormat) {
-   case GL_RGB:
-   case GL_RGBA:
-      return GL_TRUE;
-   case GL_LUMINANCE:
-   case GL_LUMINANCE_ALPHA:
-   case GL_INTENSITY:
-   case GL_ALPHA:
-      return ctx->API == API_OPENGL_COMPAT &&
-             ctx->Extensions.ARB_framebuffer_object;
-   case GL_RED:
-   case GL_RG:
-      return ctx->Extensions.ARB_texture_rg;
-   default:
-      return GL_FALSE;
-   }
-}
-
-
-/**
  * Is the given base format a legal format for a depth/stencil renderbuffer?
  */
 static GLboolean
