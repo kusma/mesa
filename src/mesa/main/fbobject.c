@@ -853,14 +853,12 @@ test_attachment_completeness(const struct gl_context *ctx, GLenum format,
       }
       else {
          assert(format == GL_STENCIL);
-         if (ctx->Extensions.ARB_depth_texture &&
+         if (ctx->Extensions.ARB_framebuffer_object &&
              baseFormat == GL_DEPTH_STENCIL) {
             /* OK */
-         } else if (ctx->Extensions.ARB_texture_stencil8 &&
-                    baseFormat == GL_STENCIL_INDEX) {
+         } else if (baseFormat == GL_STENCIL_INDEX) {
             /* OK */
          } else {
-            /* no such thing as stencil-only textures */
             att_incomplete("illegal stencil texture");
             att->Complete = GL_FALSE;
             return;
