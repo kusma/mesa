@@ -783,7 +783,7 @@ _swrast_CreateContext( struct gl_context *ctx )
    for(i = 0; i < maxThreads; i++) {
       swrast->SpanArrays[i].ChanType = CHAN_TYPE;
 #if CHAN_TYPE == GL_UNSIGNED_BYTE
-      swrast->SpanArrays[i].rgba = swrast->SpanArrays[i].rgba8;
+      swrast->SpanArrays[i].rgba = swrast->SpanArrays[i].rgba8.array;
 #elif CHAN_TYPE == GL_UNSIGNED_SHORT
       swrast->SpanArrays[i].rgba = swrast->SpanArrays[i].rgba16;
 #else

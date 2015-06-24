@@ -81,7 +81,10 @@ typedef struct sw_span_arrays
 
    /** Attribute arrays that don't fit into attribs[] array above */
    /*@{*/
-   GLubyte rgba8[SWRAST_MAX_WIDTH][4];
+   union {
+      GLubyte array[SWRAST_MAX_WIDTH][4];
+      GLuint  packed[SWRAST_MAX_WIDTH];
+   } rgba8;
    GLushort rgba16[SWRAST_MAX_WIDTH][4];
    GLchan (*rgba)[4];  /** either == rgba8 or rgba16 */
    GLint   x[SWRAST_MAX_WIDTH];  /**< fragment X coords */

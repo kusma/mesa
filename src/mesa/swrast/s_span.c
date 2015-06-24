@@ -232,7 +232,7 @@ interpolate_int_colors(struct gl_context *ctx, SWspan *span)
 #if CHAN_BITS != 32
    case GL_UNSIGNED_BYTE:
       {
-         GLubyte (*rgba)[4] = span->array->rgba8;
+         GLubyte (*rgba)[4] = span->array->rgba8.array;
          if (span->interpMask & SPAN_FLAT) {
             GLubyte color[4];
             color[RCOMP] = FixedToInt(span->red);
@@ -330,10 +330,10 @@ interpolate_float_colors(SWspan *span)
    if (span->arrayMask & SPAN_RGBA) {
       /* convert array of int colors */
       for (i = 0; i < n; i++) {
-         col0[i][0] = UBYTE_TO_FLOAT(span->array->rgba8[i][0]);
-         col0[i][1] = UBYTE_TO_FLOAT(span->array->rgba8[i][1]);
-         col0[i][2] = UBYTE_TO_FLOAT(span->array->rgba8[i][2]);
-         col0[i][3] = UBYTE_TO_FLOAT(span->array->rgba8[i][3]);
+         col0[i][0] = UBYTE_TO_FLOAT(span->array->rgba8.array[i][0]);
+         col0[i][1] = UBYTE_TO_FLOAT(span->array->rgba8.array[i][1]);
+         col0[i][2] = UBYTE_TO_FLOAT(span->array->rgba8.array[i][2]);
+         col0[i][3] = UBYTE_TO_FLOAT(span->array->rgba8.array[i][3]);
       }
    }
    else {
@@ -796,7 +796,7 @@ clip_span( struct gl_context *ctx, SWspan *span )
          }
 
          SHIFT_ARRAY(span->array->mask, leftClip, n - leftClip);
-         SHIFT_ARRAY(span->array->rgba8, leftClip, n - leftClip);
+         SHIFT_ARRAY(span->array->rgba8.array, leftClip, n - leftClip);
          SHIFT_ARRAY(span->array->rgba16, leftClip, n - leftClip);
          SHIFT_ARRAY(span->array->x, leftClip, n - leftClip);
          SHIFT_ARRAY(span->array->y, leftClip, n - leftClip);
@@ -885,7 +885,7 @@ apply_aa_coverage(SWspan *span)
    const GLfloat *coverage = span->array->coverage;
    GLuint i;
    if (span->array->ChanType == GL_UNSIGNED_BYTE) {
-      GLubyte (*rgba)[4] = span->array->rgba8;
+      GLubyte (*rgba)[4] = span->array->rgba8.array;
       for (i = 0; i < span->end; i++) {
          const GLfloat a = rgba[i][ACOMP] * coverage[i];
          rgba[i][ACOMP] = (GLubyte) CLAMP(a, 0.0F, 255.0F);
@@ -944,7 +944,7 @@ convert_color_type(SWspan *span, GLenum srcType, GLenum newType, GLuint output)
       span->array->ChanType = GL_FLOAT;
    }
    else if (srcType == GL_UNSIGNED_BYTE) {
-      src = span->array->rgba8;
+      src = span->array->rgba8.array;
    }
    else {
       assert(srcType == GL_UNSIGNED_SHORT);
@@ -952,7 +952,7 @@ convert_color_type(SWspan *span, GLenum srcType, GLenum newType, GLuint output)
    }
 
    if (newType == GL_UNSIGNED_BYTE) {
-      dst = span->array->rgba8;
+      dst = span->array->rgba8.array;
    }
    else if (newType == GL_UNSIGNED_SHORT) {
       dst = span->array->rgba16;
@@ -1341,7 +1341,7 @@ _swrast_write_rgba_span( struct gl_context *ctx, SWspan *span)
             }
             else {
                if (srcColorType == GL_UNSIGNED_BYTE) {
-                  span->array->rgba = span->array->rgba8;
+                  span->array->rgba = span->array->rgba8.array;
                }
                else {
                   span->array->rgba = (void *)

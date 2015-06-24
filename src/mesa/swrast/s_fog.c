@@ -165,7 +165,7 @@ _swrast_fog_rgba_span( const struct gl_context *ctx, SWspan *span )
             const GLfloat fogScale = (ctx->Fog.Start == ctx->Fog.End)
                ? 1.0F : 1.0F / (ctx->Fog.End - ctx->Fog.Start);
             if (span->array->ChanType == GL_UNSIGNED_BYTE) {
-               GLubyte (*rgba)[4] = span->array->rgba8;
+               GLubyte (*rgba)[4] = span->array->rgba8.array;
                FOG_LOOP(GLubyte, LINEAR_FOG);
             }
             else if (span->array->ChanType == GL_UNSIGNED_SHORT) {
@@ -184,7 +184,7 @@ _swrast_fog_rgba_span( const struct gl_context *ctx, SWspan *span )
          {
             const GLfloat density = -ctx->Fog.Density;
             if (span->array->ChanType == GL_UNSIGNED_BYTE) {
-               GLubyte (*rgba)[4] = span->array->rgba8;
+               GLubyte (*rgba)[4] = span->array->rgba8.array;
                FOG_LOOP(GLubyte, EXP_FOG);
             }
             else if (span->array->ChanType == GL_UNSIGNED_SHORT) {
@@ -203,7 +203,7 @@ _swrast_fog_rgba_span( const struct gl_context *ctx, SWspan *span )
          {
             const GLfloat negDensitySquared = -ctx->Fog.Density * ctx->Fog.Density;
             if (span->array->ChanType == GL_UNSIGNED_BYTE) {
-               GLubyte (*rgba)[4] = span->array->rgba8;
+               GLubyte (*rgba)[4] = span->array->rgba8.array;
                FOG_LOOP(GLubyte, EXP2_FOG);
             }
             else if (span->array->ChanType == GL_UNSIGNED_SHORT) {
@@ -228,7 +228,7 @@ _swrast_fog_rgba_span( const struct gl_context *ctx, SWspan *span )
        * They were previously computed per-vertex.
        */
       if (span->array->ChanType == GL_UNSIGNED_BYTE) {
-         GLubyte (*rgba)[4] = span->array->rgba8;
+         GLubyte (*rgba)[4] = span->array->rgba8.array;
          FOG_LOOP(GLubyte, BLEND_FOG);
       }
       else if (span->array->ChanType == GL_UNSIGNED_SHORT) {

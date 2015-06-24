@@ -201,7 +201,7 @@ _swrast_logicop_rgba_span(struct gl_context *ctx, struct gl_renderbuffer *rb,
    if (span->array->ChanType == GL_UNSIGNED_BYTE) {
       /* treat 4*GLubyte as GLuint */
       logicop_uint1(ctx, span->end,
-                    (GLuint *) span->array->rgba8,
+                    span->array->rgba8.packed,
                     (const GLuint *) rbPixels, span->array->mask);
    }
    else if (span->array->ChanType == GL_UNSIGNED_SHORT) {

@@ -60,7 +60,7 @@ _swrast_mask_rgba_span(struct gl_context *ctx, struct gl_renderbuffer *rb,
       memcpy(&srcMask, ctx->Color.ColorMask[buf], sizeof(srcMask));
       const GLuint dstMask = ~srcMask;
       const GLuint *dst = (const GLuint *) rbPixels;
-      GLuint *src = (GLuint *) span->array->rgba8;
+      GLuint *src = span->array->rgba8.packed;
       GLuint i;
       for (i = 0; i < n; i++) {
          src[i] = (src[i] & srcMask) | (dst[i] & dstMask);

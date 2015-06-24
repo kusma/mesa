@@ -161,7 +161,7 @@ zoom_span( struct gl_context *ctx, GLint imgX, GLint imgY, const SWspan *span,
    zoomed.array = swrast->ZoomedArrays;
    zoomed.array->ChanType = span->array->ChanType;
    if (zoomed.array->ChanType == GL_UNSIGNED_BYTE)
-      zoomed.array->rgba = (GLchan (*)[4]) zoomed.array->rgba8;
+      zoomed.array->rgba = (GLchan (*)[4]) zoomed.array->rgba8.array;
    else if (zoomed.array->ChanType == GL_UNSIGNED_SHORT)
       zoomed.array->rgba = (GLchan (*)[4]) zoomed.array->rgba16;
    else
@@ -214,7 +214,7 @@ zoom_span( struct gl_context *ctx, GLint imgX, GLint imgY, const SWspan *span,
             GLint j = unzoom_x(ctx->Pixel.ZoomX, imgX, x0 + i) - span->x;
             assert(j >= 0);
             assert(j < (GLint) span->end);
-            COPY_4UBV(zoomed.array->rgba8[i], rgba[j]);
+            COPY_4UBV(zoomed.array->rgba8.array[i], rgba[j]);
          }
       }
       else if (zoomed.array->ChanType == GL_UNSIGNED_SHORT) {
@@ -246,10 +246,10 @@ zoom_span( struct gl_context *ctx, GLint imgX, GLint imgY, const SWspan *span,
             GLint j = unzoom_x(ctx->Pixel.ZoomX, imgX, x0 + i) - span->x;
             assert(j >= 0);
             assert(j < (GLint) span->end);
-            zoomed.array->rgba8[i][0] = rgb[j][0];
-            zoomed.array->rgba8[i][1] = rgb[j][1];
-            zoomed.array->rgba8[i][2] = rgb[j][2];
-            zoomed.array->rgba8[i][3] = 0xff;
+            zoomed.array->rgba8.array[i][0] = rgb[j][0];
+            zoomed.array->rgba8.array[i][1] = rgb[j][1];
+            zoomed.array->rgba8.array[i][2] = rgb[j][2];
+            zoomed.array->rgba8.array[i][3] = 0xff;
          }
       }
       else if (zoomed.array->ChanType == GL_UNSIGNED_SHORT) {
