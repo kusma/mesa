@@ -166,7 +166,6 @@ nouveau_choose_tex_format(struct gl_context *ctx, GLenum target,
 			  GLenum srcFormat, GLenum srcType)
 {
 	switch (internalFormat) {
-	case 4:
 	case GL_RGBA:
 	case GL_RGBA2:
 	case GL_RGBA4:
@@ -186,13 +185,11 @@ nouveau_choose_tex_format(struct gl_context *ctx, GLenum target,
 	case GL_RGB16:
 	case GL_COMPRESSED_RGB:
 		return MESA_FORMAT_B8G8R8X8_UNORM;
-	case 3:
 	case GL_R3_G3_B2:
 	case GL_RGB4:
 	case GL_RGB5:
 		return MESA_FORMAT_B5G6R5_UNORM;
 
-	case 2:
 	case GL_LUMINANCE_ALPHA:
 	case GL_LUMINANCE4_ALPHA4:
 	case GL_LUMINANCE6_ALPHA2:
@@ -203,7 +200,6 @@ nouveau_choose_tex_format(struct gl_context *ctx, GLenum target,
 	case GL_COMPRESSED_LUMINANCE_ALPHA:
 		return MESA_FORMAT_B8G8R8A8_UNORM;
 
-	case 1:
 	case GL_LUMINANCE:
 	case GL_LUMINANCE4:
 	case GL_LUMINANCE12:

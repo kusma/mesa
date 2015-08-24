@@ -286,7 +286,6 @@ mesa_format radeonChooseTextureFormat(struct gl_context * ctx,
 			__func__, do32bpt, force16bpt);
 
 	switch (internalFormat) {
-	case 4:
 	case GL_RGBA:
 	case GL_COMPRESSED_RGBA:
 		switch (type) {
@@ -305,7 +304,6 @@ mesa_format radeonChooseTextureFormat(struct gl_context * ctx,
 			    _radeon_texformat_argb4444;
 		}
 
-	case 3:
 	case GL_RGB:
 	case GL_COMPRESSED_RGB:
 		switch (type) {
@@ -363,7 +361,6 @@ mesa_format radeonChooseTextureFormat(struct gl_context * ctx,
 #else
 		return MESA_FORMAT_A_UNORM8;
 #endif
-	case 1:
 	case GL_LUMINANCE:
 	case GL_LUMINANCE4:
 	case GL_LUMINANCE8:
@@ -372,7 +369,6 @@ mesa_format radeonChooseTextureFormat(struct gl_context * ctx,
 	case GL_COMPRESSED_LUMINANCE:
 		return MESA_FORMAT_L_UNORM8;
 
-	case 2:
 	case GL_LUMINANCE_ALPHA:
 	case GL_LUMINANCE4_ALPHA4:
 	case GL_LUMINANCE6_ALPHA2:
