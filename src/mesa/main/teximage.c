@@ -1580,9 +1580,10 @@ _mesa_legal_texture_base_format_for_target(struct gl_context *ctx,
                                            unsigned dimensions,
                                            const char *caller)
 {
-   if (_mesa_base_tex_format(ctx, internalFormat) == GL_DEPTH_COMPONENT
-       || _mesa_base_tex_format(ctx, internalFormat) == GL_DEPTH_STENCIL
-       || _mesa_base_tex_format(ctx, internalFormat) == GL_STENCIL_INDEX) {
+   GLint baseFormat = _mesa_base_tex_format(ctx, internalFormat);
+   if (baseFormat == GL_DEPTH_COMPONENT
+       || baseFormat == GL_DEPTH_STENCIL
+       || baseFormat == GL_STENCIL_INDEX) {
       /* Section 3.8.3 (Texture Image Specification) of the OpenGL 3.3 Core
        * Profile spec says:
        *
