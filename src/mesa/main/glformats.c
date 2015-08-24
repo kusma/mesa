@@ -638,14 +638,12 @@ _mesa_is_enum_format_unorm(GLenum format)
       case GL_ALPHA8:
       case GL_ALPHA12:
       case GL_ALPHA16:
-      case 1:
       case GL_LUMINANCE:
       case GL_SLUMINANCE:
       case GL_LUMINANCE4:
       case GL_LUMINANCE8:
       case GL_LUMINANCE12:
       case GL_LUMINANCE16:
-      case 2:
       case GL_LUMINANCE_ALPHA:
       case GL_SLUMINANCE_ALPHA:
       case GL_LUMINANCE4_ALPHA4:
@@ -664,7 +662,6 @@ _mesa_is_enum_format_unorm(GLenum format)
       case GL_RG:
       case GL_RG8:
       case GL_RG16:
-      case 3:
       case GL_RGB:
       case GL_BGR:
       case GL_SRGB:
@@ -676,7 +673,6 @@ _mesa_is_enum_format_unorm(GLenum format)
       case GL_RGB10:
       case GL_RGB12:
       case GL_RGB16:
-      case 4:
       case GL_ABGR_EXT:
       case GL_RGBA:
       case GL_BGRA:
@@ -924,13 +920,11 @@ _mesa_is_color_format(GLenum format)
       case GL_ALPHA8:
       case GL_ALPHA12:
       case GL_ALPHA16:
-      case 1:
       case GL_LUMINANCE:
       case GL_LUMINANCE4:
       case GL_LUMINANCE8:
       case GL_LUMINANCE12:
       case GL_LUMINANCE16:
-      case 2:
       case GL_LUMINANCE_ALPHA:
       case GL_LUMINANCE4_ALPHA4:
       case GL_LUMINANCE6_ALPHA2:
@@ -948,7 +942,6 @@ _mesa_is_color_format(GLenum format)
       case GL_RG:
       case GL_RG8:
       case GL_RG16:
-      case 3:
       case GL_RGB:
       case GL_BGR:
       case GL_R3_G3_B2:
@@ -959,7 +952,6 @@ _mesa_is_color_format(GLenum format)
       case GL_RGB10:
       case GL_RGB12:
       case GL_RGB16:
-      case 4:
       case GL_ABGR_EXT:
       case GL_RGBA:
       case GL_BGRA:
@@ -1579,16 +1571,12 @@ _mesa_get_nongeneric_internalformat(GLenum format)
 {
    switch (format) {
    /* GL 1.1 formats. */
-   case 4:
    case GL_RGBA:
       return GL_RGBA8;
-   case 3:
    case GL_RGB:
       return GL_RGB8;
-   case 2:
    case GL_LUMINANCE_ALPHA:
       return GL_LUMINANCE8_ALPHA8;
-   case 1:
    case GL_LUMINANCE:
       return GL_LUMINANCE8;
    case GL_ALPHA:
@@ -2168,14 +2156,12 @@ _mesa_base_tex_format(const struct gl_context *ctx, GLint internalFormat)
    case GL_ALPHA12:
    case GL_ALPHA16:
       return (ctx->API != API_OPENGL_CORE) ? GL_ALPHA : -1;
-   case 1:
    case GL_LUMINANCE:
    case GL_LUMINANCE4:
    case GL_LUMINANCE8:
    case GL_LUMINANCE12:
    case GL_LUMINANCE16:
       return (ctx->API != API_OPENGL_CORE) ? GL_LUMINANCE : -1;
-   case 2:
    case GL_LUMINANCE_ALPHA:
    case GL_LUMINANCE4_ALPHA4:
    case GL_LUMINANCE6_ALPHA2:
@@ -2190,8 +2176,6 @@ _mesa_base_tex_format(const struct gl_context *ctx, GLint internalFormat)
    case GL_INTENSITY12:
    case GL_INTENSITY16:
       return (ctx->API != API_OPENGL_CORE) ? GL_INTENSITY : -1;
-   case 3:
-      return (ctx->API != API_OPENGL_CORE) ? GL_RGB : -1;
    case GL_RGB:
    case GL_R3_G3_B2:
    case GL_RGB4:
@@ -2201,8 +2185,6 @@ _mesa_base_tex_format(const struct gl_context *ctx, GLint internalFormat)
    case GL_RGB12:
    case GL_RGB16:
       return GL_RGB;
-   case 4:
-      return (ctx->API != API_OPENGL_CORE) ? GL_RGBA : -1;
    case GL_RGBA:
    case GL_RGBA2:
    case GL_RGBA4:

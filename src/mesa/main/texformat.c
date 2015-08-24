@@ -68,7 +68,6 @@ _mesa_choose_tex_format(struct gl_context *ctx, GLenum target,
 
    switch (internalFormat) {
    /* shallow RGBA formats */
-   case 4:
    case GL_RGBA:
       if (type == GL_UNSIGNED_SHORT_4_4_4_4_REV) {
          RETURN_IF_SUPPORTED(MESA_FORMAT_B4G4R4A4_UNORM);
@@ -110,7 +109,6 @@ _mesa_choose_tex_format(struct gl_context *ctx, GLenum target,
       break;
 
    /* shallow RGB formats */
-   case 3:
    case GL_RGB:
       if (type == GL_UNSIGNED_INT_2_10_10_10_REV) {
          RETURN_IF_SUPPORTED(MESA_FORMAT_B10G10R10A2_UNORM);
@@ -167,7 +165,6 @@ _mesa_choose_tex_format(struct gl_context *ctx, GLenum target,
       break;
 
    /* Luminance formats */
-   case 1:
    case GL_LUMINANCE:
    case GL_LUMINANCE4:
    case GL_LUMINANCE8:
@@ -186,7 +183,6 @@ _mesa_choose_tex_format(struct gl_context *ctx, GLenum target,
       RETURN_IF_SUPPORTED(MESA_FORMAT_L8A8_UNORM);
       break;
 
-   case 2:
    case GL_LUMINANCE_ALPHA:
    case GL_LUMINANCE6_ALPHA2:
    case GL_LUMINANCE8_ALPHA8:

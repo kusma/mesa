@@ -2248,22 +2248,6 @@ copytexture_error_check( struct gl_context *ctx, GLuint dimensions,
                      _mesa_enum_to_string(internalFormat));
          return GL_TRUE;
       }
-   } else {
-      /*
-       * Section 8.6 (Alternate Texture Image Specification Commands) of the
-       * OpenGL 4.5 (Compatibility Profile) spec says:
-       *
-       *     "Parameters level, internalformat, and border are specified using
-       *     the same values, with the same meanings, as the corresponding
-       *     arguments of TexImage2D, except that internalformat may not be
-       *     specified as 1, 2, 3, or 4."
-       */
-      if (internalFormat >= 1 && internalFormat <= 4) {
-         _mesa_error(ctx, GL_INVALID_ENUM,
-                     "glCopyTexImage%dD(internalFormat=%d)", dimensions,
-                     internalFormat);
-         return GL_TRUE;
-      }
    }
 
    baseFormat = _mesa_base_tex_format(ctx, internalFormat);
@@ -2782,6 +2766,29 @@ strip_texture_border(GLenum target,
 
 
 /**
+ * Translate OpenGL 1.0 internal-formats to OpenGL 1.1 style
+ */
+static GLint override_legacy_internal_format(GLint internalFormat)
+{
+   switch (internalFormat) {
+   case 1:
+      return GL_LUMINANCE;
+
+   case 2:
+      return GL_LUMINANCE_ALPHA;
+
+   case 3:
+      return GL_RGB;
+
+   case 4:
+      return GL_RGBA;
+   }
+
+   return internalFormat;
+}
+
+
+/**
  * Common code to implement all the glTexImage1D/2D/3D functions
  * as well as glCompressedTexImage1D/2D/3D.
  * \param compressed  only GL_TRUE for glCompressedTexImage1D/2D/3D calls.
@@ -2823,6 +2830,9 @@ teximage(struct gl_context *ctx, GLboolean compressed, GLuint dims,
                      _mesa_enum_to_string(format),
                      _mesa_enum_to_string(type), pixels);
    }
+
+   if (ctx->API == API_OPENGL_COMPAT)
+      internalFormat = override_legacy_internal_format(internalFormat);
 
    internalFormat = override_internal_format(internalFormat, width, height);
 

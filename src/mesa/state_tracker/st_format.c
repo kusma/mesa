@@ -2191,8 +2191,7 @@ st_ChooseTextureFormat(struct gl_context *ctx, GLenum target,
    bindings = PIPE_BIND_SAMPLER_VIEW;
    if (_mesa_is_depth_or_stencil_format(internalFormat))
       bindings |= PIPE_BIND_DEPTH_STENCIL;
-   else if (internalFormat == 3 || internalFormat == 4 ||
-            internalFormat == GL_RGB || internalFormat == GL_RGBA ||
+   else if (internalFormat == GL_RGB || internalFormat == GL_RGBA ||
             internalFormat == GL_RGB8 || internalFormat == GL_RGBA8 ||
             internalFormat == GL_BGRA ||
             internalFormat == GL_RGB16F ||
