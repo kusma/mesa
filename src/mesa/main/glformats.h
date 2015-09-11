@@ -136,7 +136,8 @@ _mesa_es3_error_check_format_and_type(const struct gl_context *ctx,
                                       GLenum format, GLenum type,
                                       GLenum internalFormat);
 extern GLint
-_mesa_base_tex_format(const struct gl_context *ctx, GLint internalFormat );
+_mesa_base_tex_format(const struct gl_context *ctx,
+                      GLint internalFormat) ATTRIBUTE_PURE;
 
 extern uint32_t
 _mesa_format_from_format_and_type(GLenum format, GLenum type);
