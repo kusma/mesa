@@ -655,22 +655,6 @@ fbo_incomplete(struct gl_context *ctx, const char *msg, int index)
 
 
 /**
- * Is the given base format a legal format for a depth/stencil renderbuffer?
- */
-static GLboolean
-is_legal_depth_format(const struct gl_context *ctx, GLenum baseFormat)
-{
-   switch (baseFormat) {
-   case GL_DEPTH_COMPONENT:
-   case GL_DEPTH_STENCIL_EXT:
-      return GL_TRUE;
-   default:
-      return GL_FALSE;
-   }
-}
-
-
-/**
  * Test if an attachment point is complete and update its Complete field.
  * \param format if GL_COLOR, this is a color attachment point,
  *               if GL_DEPTH, this is a depth component attachment point,
