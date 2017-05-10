@@ -6,7 +6,18 @@
 #include "tegra_context.h"
 #include "tegra_state.h"
 
+#include "tgr_3d.xml.h"
+
+#include "host1x01_hardware.h"
+
 #define unimplemented() printf("TODO: %s()\n", __func__)
+
+#define TGR3D_VAL(reg_name, field_name, value) \
+   (((value) << TGR3D_ ## reg_name ## _ ## field_name ## __SHIFT) & \
+           TGR3D_ ## reg_name ## _ ## field_name ## __MASK)
+
+#define TGR3D_BOOL(reg_name, field_name, boolean) \
+   ((boolean) ? TGR3D_ ## reg_name ## _ ## field_name : 0)
 
 static void
 tegra_set_sample_mask(struct pipe_context *pcontext,
@@ -264,7 +275,23 @@ static void
 tegra_draw_vbo(struct pipe_context *pcontext,
                const struct pipe_draw_info *info)
 {
-   unimplemented();
+   int err;
+   struct tegra_context *context = tegra_context(pcontext);
+   struct tegra_channel *gr3d = context->gr3d;
+
+   err = tegra_stream_begin(&gr3d->stream);
+   if (err < 0) {
+      fprintf(stderr, "tegra_stream_begin() failed: %d\n", err);
+      return;
+   }
+
+   tegra_stream_push_setclass(&gr3d->stream, HOST1X_CLASS_GR3D);
+
+   /* TODO: draw */
+
+   tegra_stream_end(&gr3d->stream);
+
+   tegra_stream_flush(&gr3d->stream);
 }
 
 void
