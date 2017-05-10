@@ -4,6 +4,11 @@
 #include "pipe/p_context.h"
 #include "pipe/p_state.h"
 
+struct tegra_stream;
+
+void
+tegra_emit_state(struct tegra_stream *stream);
+
 void
 tegra_context_state_init(struct pipe_context *pcontext);
 
