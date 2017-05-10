@@ -4,6 +4,8 @@
 #include "pipe/p_context.h"
 #include "pipe/p_state.h"
 
+struct tegra_stream;
+
 struct tegra_blend_state {
    struct pipe_blend_state base;
 };
@@ -19,6 +21,9 @@ struct tegra_rasterizer_state {
 struct tegra_zsa_state {
    struct pipe_depth_stencil_alpha_state base;
 };
+
+void
+tegra_emit_state(struct tegra_stream *stream);
 
 void
 tegra_context_state_init(struct pipe_context *pcontext);
