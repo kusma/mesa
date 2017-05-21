@@ -9,6 +9,7 @@
 #include "tegra_context.h"
 #include "tegra_program.h"
 #include "tegra_resource.h"
+#include "tegra_screen.h"
 #include "tegra_state.h"
 
 #include "tgr_3d.xml.h"
