@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Dmitry Osipenko <digetx@gmail.com>
+ * Copyright (c) 2016-2017 Dmitry Osipenko <digetx@gmail.com>
  * Copyright (C) 2012-2013 NVIDIA Corporation.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
