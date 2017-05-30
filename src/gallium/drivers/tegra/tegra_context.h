@@ -35,6 +35,9 @@ struct tegra_context {
 
    struct tegra_vertex_state *vs;
    struct tegra_vertexbuf_state vbs;
+
+   uint32_t no_scissor[2];
+   uint32_t viewport[6];
 };
 
 static inline struct tegra_context *
