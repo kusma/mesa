@@ -78,6 +78,8 @@ int tegra_stream_push_reloc(struct tegra_stream *stream,
                             struct drm_tegra_bo *bo, unsigned offset);
 struct tegra_reloc tegra_reloc(const void *var_ptr, struct drm_tegra_bo *bo,
                                uint32_t offset, uint32_t var_offset);
+int tegra_stream_push_array(struct tegra_stream *stream,
+                            const uint32_t *word, size_t num_words);
 int tegra_stream_push_words(struct tegra_stream *stream, const void *addr,
                             unsigned words, int num_relocs, ...);
 
