@@ -38,10 +38,10 @@ static void tegra_set_constant_buffer(struct pipe_context *pcontext,
 	fprintf(stdout, "  buffer:\n");
 
 	if (buffer) {
-		fprintf(stdout, "    buffer: %p\n", buffer->buffer);
+		fprintf(stdout, "    user_buffer: %p\n", buffer->user_buffer);
 		fprintf(stdout, "    buffer_offset: %u\n", buffer->buffer_offset);
 		fprintf(stdout, "    buffer_size: %u\n", buffer->buffer_size);
-		assert(!buffer->user_buffer);
+		assert(buffer->user_buffer && !buffer->buffer);
 	}
 
 	fprintf(stdout, "< %s()\n", __func__);
