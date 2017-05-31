@@ -124,6 +124,11 @@ static inline uint32_t host1x_opcode_mask(unsigned offset, unsigned mask)
 	return (3 << 28) | (offset << 16) | mask;
 }
 
+static inline uint32_t host1x_opcode_imm(unsigned offset, unsigned value)
+{
+	return (4 << 28) | (offset << 16) | value;
+}
+
 static inline uint32_t host1x_mask2(unsigned x, unsigned y)
 {
 	return 1 | (1 << (y - x));

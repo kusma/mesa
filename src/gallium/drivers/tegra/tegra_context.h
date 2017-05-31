@@ -36,6 +36,7 @@ struct tegra_context {
 	struct tegra_vertex_state *vs;
 	struct tegra_vertexbuf_state vbs;
 	struct pipe_index_buffer index_buffer;
+	struct pipe_constant_buffer constant_buffer[PIPE_SHADER_TYPES];
 
 	uint32_t no_scissor[2];
 	uint32_t viewport[6];
