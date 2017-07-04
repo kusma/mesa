@@ -35,6 +35,7 @@ struct tegra_vertex_element {
 struct tegra_vertex_state {
 	struct tegra_vertex_element elements[PIPE_MAX_ATTRIBS];
 	unsigned int num_elements;
+	uint16_t mask;
 };
 
 void tegra_context_state_init(struct pipe_context *pcontext);

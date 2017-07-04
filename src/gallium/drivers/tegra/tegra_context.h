@@ -38,6 +38,9 @@ struct tegra_context {
 	struct pipe_index_buffer index_buffer;
 	struct pipe_constant_buffer constant_buffer[PIPE_SHADER_TYPES];
 
+	struct tegra_vs_state *vshader;
+	struct tegra_fs_state *fshader;
+
 	uint32_t no_scissor[2];
 	uint32_t viewport[6];
 	uint32_t guardband[6];
