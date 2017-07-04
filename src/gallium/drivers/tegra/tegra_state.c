@@ -386,6 +386,7 @@ tegra_create_vertex_state(struct pipe_context *pcontext, unsigned int count,
                           const struct pipe_vertex_element *elements)
 {
    unsigned int i;
+   uint16_t mask = 0;
    struct tegra_vertex_state *vtx = CALLOC_STRUCT(tegra_vertex_state);
    if (!vtx)
       return NULL;
@@ -396,9 +397,11 @@ tegra_create_vertex_state(struct pipe_context *pcontext, unsigned int count,
       dst->attrib = tegra_attrib_mode(src);
       dst->buffer_index = src->vertex_buffer_index;
       dst->offset = src->src_offset;
+      mask |= 1 << i;
    }
 
    vtx->num_elements = count;
+   vtx->mask = mask;
 
    return vtx;
 }
@@ -519,6 +522,18 @@ emit_program(struct tegra_context *context)
 
    emit_shader(stream, context->vshader);
    emit_shader(stream, context->fshader);
+
+   /* depends on linking and cull-face */
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_CULL_FACE_LINKER_SETUP, 1));
+   tegra_stream_push(stream, 0xb8e00000);
+
+   /* depends on linking */
+   uint32_t linker_insts[] = {
+      0x00000008,
+      0x0000fecd
+   };
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_LINKER_INSTRUCTION(0), ARRAY_SIZE(linker_insts)));
+   tegra_stream_push_words(stream, linker_insts, ARRAY_SIZE(linker_insts), 0);
 }
 
 void
