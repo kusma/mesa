@@ -6,6 +6,7 @@
 #include "util/u_format.h"
 
 #include "tegra_context.h"
+#include "tegra_program.h"
 #include "tegra_resource.h"
 #include "tegra_state.h"
 
@@ -402,6 +403,7 @@ tegra_create_vertex_state(struct pipe_context *pcontext, unsigned int count,
                           const struct pipe_vertex_element *elements)
 {
    unsigned int i;
+   uint16_t mask = 0;
    struct tegra_vertex_state *vtx = CALLOC_STRUCT(tegra_vertex_state);
    if (!vtx)
       return NULL;
@@ -412,9 +414,11 @@ tegra_create_vertex_state(struct pipe_context *pcontext, unsigned int count,
       dst->attrib = tegra_attrib_mode(src);
       dst->buffer_index = src->vertex_buffer_index;
       dst->offset = src->src_offset;
+      mask |= 1 << i;
    }
 
    vtx->num_elements = count;
+   vtx->mask = mask;
 
    return vtx;
 }
@@ -539,13 +543,96 @@ static void emit_vs_uniforms(struct tegra_context *context)
    }
 }
 
+static void emit_program(struct tegra_context *context)
+{
+   struct tegra_stream *stream = &context->gr3d->stream;
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_CULL_FACE_LINKER_SETUP, 1));
+   tegra_stream_push(stream, 0xb8e00000);
+
+   /* upload vertex program */
+   tegra_stream_push(stream, host1x_opcode_imm(TGR3D_VP_UPLOAD_INST_ID, 0));
+   tegra_stream_push(stream, host1x_opcode_nonincr(TGR3D_VP_UPLOAD_INST, 8));
+   tegra_stream_push(stream, 0x401f9c6c);
+   tegra_stream_push(stream, 0x0040000d);
+   tegra_stream_push(stream, 0x8106c083);
+   tegra_stream_push(stream, 0x6041ff80);
+   tegra_stream_push(stream, 0x401f9c6c);
+   tegra_stream_push(stream, 0x0040010d);
+   tegra_stream_push(stream, 0x8106c083);
+   tegra_stream_push(stream, 0x6041ff9d);
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_CULL_FACE_LINKER_SETUP, 1));
+   tegra_stream_push(stream, 0xb8e00000);
+
+   tegra_stream_push(stream, host1x_opcode_incr(0x300, 2)); /* LINKER_INSTRUCTION */
+   tegra_stream_push(stream, 0x00000008);
+   tegra_stream_push(stream, 0x0000fecd);
+
+   tegra_stream_push(stream, host1x_opcode_incr(0xe20, 1)); /* ALU_BUFFER_SIZE */
+   tegra_stream_push(stream, 0x58000000);
+
+   tegra_stream_push(stream, host1x_opcode_imm(0x545, 0)); /* PSEQ_QUAD_ID*/
+   tegra_stream_push(stream, host1x_opcode_imm(TGR3D_FP_UPLOAD_INST_ID_COMMON, 0));
+   tegra_stream_push(stream, host1x_opcode_imm(TGR3D_FP_UPLOAD_MFU_INST_ID, 0));
+   tegra_stream_push(stream, host1x_opcode_imm(TGR3D_FP_UPLOAD_ALU_INST_ID, 0));
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_FP_PSEQ_ENGINE_INST, 1));
+   tegra_stream_push(stream, 0x20006001);
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_FP_PSEQ_DW_CFG, 1));
+   tegra_stream_push(stream, 0x00000040);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(TGR3D_FP_PSEQ_UPLOAD_INST, 1));
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_FP_PSEQ_UPLOAD_INST_BUFFER_FLUSH, 1));
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(0x601, 1)); /* FP_UPLOAD_MFU_SCHED */
+   tegra_stream_push(stream, 0x00000001);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_INST, 2));
+   tegra_stream_push(stream, 0x104e51ba);
+   tegra_stream_push(stream, 0x00408102);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(0x701, 1)); /* FP_UPLOAD_TEX_INST */
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_SCHED, 1));
+   tegra_stream_push(stream, 0x00000001);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST, 8));
+   tegra_stream_push(stream, 0x0001c0c0);
+   tegra_stream_push(stream, 0x3f41f200);
+   tegra_stream_push(stream, 0x0001a080);
+   tegra_stream_push(stream, 0x3f41f200);
+   tegra_stream_push(stream, 0x00014000);
+   tegra_stream_push(stream, 0x3f41f200);
+   tegra_stream_push(stream, 0x00012040);
+   tegra_stream_push(stream, 0x3f41f200);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(0x806, 1)); /* FP_UPLOAD_ALU_INST_COMPLEMENT */
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_nonincr(TGR3D_FP_UPLOAD_DW_INST, 1));
+   tegra_stream_push(stream, 0x00028005);
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_VP_ATTRIB_IN_OUT_SELECT, 1));
+   tegra_stream_push(stream, 0x00030081);
+
+   tegra_stream_push(stream, host1x_opcode_imm(TGR3D_TRAM_SETUP, 0x0140));
+}
+
 static void
 tegra_draw_vbo(struct pipe_context *pcontext,
                const struct pipe_draw_info *info)
 {
    int err;
+   uint32_t value;
    struct tegra_context *context = tegra_context(pcontext);
-   struct tegra_channel *gr3d = context->gr3d;
+   struct tegra_stream *stream = &context->gr3d->stream;
+   uint16_t out_mask = 0x0081;
 
    fprintf(stdout, "> %s(pcontext=%p, info=%p)\n", __func__, pcontext,
       info);
@@ -555,13 +642,13 @@ tegra_draw_vbo(struct pipe_context *pcontext,
    fprintf(stdout, "    start: %u\n", info->start);
    fprintf(stdout, "    count: %u\n", info->count);
 
-   err = tegra_stream_begin(&gr3d->stream);
+   err = tegra_stream_begin(stream);
    if (err < 0) {
       fprintf(stderr, "tegra_stream_begin() failed: %d\n", err);
       return;
    }
 
-   tegra_stream_push_setclass(&gr3d->stream, HOST1X_CLASS_GR3D);
+   tegra_stream_push_setclass(stream, HOST1X_CLASS_GR3D);
 
    emit_render_targets(context);
    emit_viewport(context);
@@ -570,12 +657,32 @@ tegra_draw_vbo(struct pipe_context *pcontext,
    emit_depth_range(context);
    emit_attribs(context);
    emit_vs_uniforms(context);
+   emit_program(context);
 
-   /* TODO: draw */
+   assert(!info->index_size);
 
-   tegra_stream_end(&gr3d->stream);
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_VP_ATTRIB_IN_OUT_SELECT, 1));
+   tegra_stream_push(stream, ((uint32_t)context->vs->mask << 16) | out_mask);
 
-   tegra_stream_flush(&gr3d->stream);
+   /* draw params */
+   value  = TGR3D_VAL(DRAW_PARAMS, INDEX_MODE, TGR3D_INDEX_MODE_NONE);
+   /* TODO: provoking vertex (comes from pipe_rasterizer_state) */
+   value |= TGR3D_VAL(DRAW_PARAMS, PRIMITIVE_TYPE, TGR3D_PRIMITIVE_TYPE_TRIANGLES); /* TODO: derive from info */
+   value |= TGR3D_VAL(DRAW_PARAMS, FIRST, info->start);
+   value |= 0xC0000000;
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_DRAW_PARAMS, 1));
+   tegra_stream_push(stream, value);
+
+   assert(info->count < (1 << 11));
+   value  = TGR3D_VAL(DRAW_PRIMITIVES, INDEX_COUNT, info->count);
+   value |= TGR3D_VAL(DRAW_PRIMITIVES, OFFSET, 0); /* TODO: derive from info */
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_DRAW_PRIMITIVES, 1));
+   tegra_stream_push(stream, value);
+
+   tegra_stream_end(stream);
+
+   tegra_stream_flush(stream);
 
    fprintf(stdout, "< %s()\n", __func__);
 }
