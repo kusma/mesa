@@ -27,7 +27,7 @@ tegra_create_vs_state(struct pipe_context *pcontext,
 static void
 tegra_bind_vs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->vshader = so;
 }
 
 static void
@@ -52,7 +52,7 @@ tegra_create_fs_state(struct pipe_context *pcontext,
 static void
 tegra_bind_fs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->fshader = so;
 }
 
 static void
