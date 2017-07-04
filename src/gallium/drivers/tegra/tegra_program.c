@@ -114,13 +114,33 @@ tegra_create_vs_state(struct pipe_context *pcontext,
 
    so->base = *template;
 
+   /* TODO: generate code! */
+
+   static const enum vpe_swz identity_swizzle[] = { VPE_SWZ_X, VPE_SWZ_Y, VPE_SWZ_Z, VPE_SWZ_W };
+
+   static uint32_t vp_insts[4 * 2];
+   tegra_vpe_pack(vp_insts,
+                  emit_packed(emit_vADD(output(0, (1 << 4) - 1),
+                                        attrib(0, identity_swizzle),
+                                        uniform(0, identity_swizzle)),
+                              emit_sNOP()),
+                  false);
+   tegra_vpe_pack(vp_insts + 4,
+                  emit_packed(emit_vMOV(output(7, (1 << 4) - 1),
+                                        attrib(1, identity_swizzle)),
+                              emit_sNOP()),
+                  true);
+
+   so->vp_insts = vp_insts;
+   so->num_vp_insts = ARRAY_SIZE(vp_insts);
+
    return so;
 }
 
 static void
 tegra_bind_vs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->vshader = so;
 }
 
 static void
@@ -139,13 +159,65 @@ tegra_create_fs_state(struct pipe_context *pcontext,
 
    so->base = *template;
 
+   /* TODO: generate code! */
+
+   static uint32_t pseq_insts[] = {
+      0x00000000
+   };
+   so->pseq_insts = pseq_insts;
+   so->num_pseq_insts = ARRAY_SIZE(pseq_insts);
+
+   static uint32_t mfu_scheds[] = {
+      0x00000001
+   };
+   so->mfu_scheds = mfu_scheds;
+   so->num_mfu_scheds = ARRAY_SIZE(mfu_scheds);
+
+   static uint32_t mfu_insts[] = {
+      0x104e51ba,
+      0x00408102
+   };
+   so->mfu_insts = mfu_insts;
+   so->num_mfu_insts = ARRAY_SIZE(mfu_insts);
+
+   static uint32_t tex_insts[] = {
+      0x00000000
+   };
+   so->tex_insts = tex_insts;
+   so->num_tex_insts = ARRAY_SIZE(tex_insts);
+
+   static uint32_t alu_scheds[] = {
+      0x00000001
+   };
+   so->alu_scheds = alu_scheds;
+   so->num_alu_scheds = ARRAY_SIZE(alu_scheds);
+
+   static uint32_t alu_insts[] = {
+      0x0001c0c0,
+      0x3f41f200,
+      0x0001a080,
+      0x3f41f200,
+      0x00014000,
+      0x3f41f200,
+      0x00012040,
+      0x3f41f200
+   };
+   so->alu_insts = alu_insts;
+   so->num_alu_insts = ARRAY_SIZE(alu_insts);
+
+   static uint32_t dw_insts[] = {
+      0x00028005
+   };
+   so->dw_insts = dw_insts;
+   so->num_dw_insts = ARRAY_SIZE(dw_insts);
+
    return so;
 }
 
 static void
 tegra_bind_fs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->fshader = so;
 }
 
 static void
