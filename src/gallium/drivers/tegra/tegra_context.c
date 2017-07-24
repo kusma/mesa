@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include "util/u_bitcast.h"
 #include "util/u_memory.h"
 #include "util/u_upload_mgr.h"
 
@@ -10,6 +11,198 @@
 #include "tegra_screen.h"
 #include "tegra_state.h"
 #include "tegra_surface.h"
+
+#include "host1x01_hardware.h"
+
+static int init(struct tegra_stream *stream)
+{
+   int err = tegra_stream_begin(stream);
+   if (err < 0) {
+      fprintf(stderr, "tegra_stream_begin() failed: %d\n", err);
+      return err;
+   }
+
+   tegra_stream_push_setclass(stream, HOST1X_CLASS_GR3D);
+
+   /* Tegra30 specific stuff */
+   tegra_stream_push(stream, host1x_opcode_incr(0x750, 0x0010));
+   for (int i = 0; i < 16; i++)
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_imm(0x907, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x908, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x909, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x90a, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x90b, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb00, 0x0003));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb01, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb04, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb06, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb07, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb08, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb09, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb0a, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb0b, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb0c, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb0d, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb0e, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb0f, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb10, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb11, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb12, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xb14, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe40, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe41, 0x0000));
+
+   /* Common stuff */
+   tegra_stream_push(stream, host1x_opcode_imm(0x00d, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x00e, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x00f, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x010, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x011, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x012, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x013, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x014, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x015, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x120, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x122, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x124, 0x0007));
+   tegra_stream_push(stream, host1x_opcode_imm(0x125, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x126, 0x0000));
+
+   tegra_stream_push(stream, host1x_opcode_incr(0x200, 0x0005));
+   tegra_stream_push(stream, 0x00000011);
+   tegra_stream_push(stream, 0x0000ffff);
+   tegra_stream_push(stream, 0x00ff0000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_imm(0x209, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x20a, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x20c, 0x0003));
+   tegra_stream_push(stream, host1x_opcode_imm(0x300, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x301, 0x0000));
+
+   tegra_stream_push(stream, host1x_opcode_incr(0x343, 0x0019));
+   tegra_stream_push(stream, 0xb8e00000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000105);
+   tegra_stream_push(stream, 0x3f000000);
+   tegra_stream_push(stream, 0x3f800000);
+   tegra_stream_push(stream, 0x3f800000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x3f000000);
+   tegra_stream_push(stream, 0x3f800000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000205);
+
+   tegra_stream_push(stream, host1x_opcode_mask(0x352, 0x001b));
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x41800000);
+   tegra_stream_push(stream, 0x41800000);
+
+   tegra_stream_push(stream, host1x_opcode_mask(0x354, 0x0009));
+   tegra_stream_push(stream, 0x3efffff0);
+   tegra_stream_push(stream, 0x3efffff0);
+
+   tegra_stream_push(stream, host1x_opcode_incr(0x358, 0x0003));
+   tegra_stream_push(stream, u_bitcast_f2u(1.0f));
+   tegra_stream_push(stream, u_bitcast_f2u(1.0f));
+   tegra_stream_push(stream, u_bitcast_f2u(1.0f));
+
+   tegra_stream_push(stream, host1x_opcode_imm(0x363, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x364, 0x0000));
+
+   tegra_stream_push(stream, host1x_opcode_imm(0x400, 0x07ff));
+   tegra_stream_push(stream, host1x_opcode_imm(0x401, 0x07ff));
+
+   tegra_stream_push(stream, host1x_opcode_incr(0x402, 0x0012));
+   tegra_stream_push(stream, 0x00000040);
+   tegra_stream_push(stream, 0x00000310);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x000fffff);
+   tegra_stream_push(stream, 0x00000001);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x1fff1fff);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000006);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000008);
+   tegra_stream_push(stream, 0x00000048);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_imm(0x500, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x501, 0x0007));
+   tegra_stream_push(stream, host1x_opcode_imm(0x502, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x503, 0x0000));
+
+   tegra_stream_push(stream, host1x_opcode_incr(0x520, 0x0020));
+   for (int i = 0; i < 32; i++)
+      tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_imm(0x540, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x542, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x543, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x544, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x545, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x546, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x60e, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x702, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x740, 0x0001));
+   tegra_stream_push(stream, host1x_opcode_imm(0x741, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x742, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x902, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0x903, 0x0000));
+
+   tegra_stream_push(stream, host1x_opcode_incr(0xa00, 0x000d));
+   tegra_stream_push(stream, 0x00000e00);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x000001ff);
+   tegra_stream_push(stream, 0x000001ff);
+   tegra_stream_push(stream, 0x000001ff);
+   tegra_stream_push(stream, 0x00000030);
+   tegra_stream_push(stream, 0x00000020);
+   tegra_stream_push(stream, 0x000001ff);
+   tegra_stream_push(stream, 0x00000100);
+   tegra_stream_push(stream, 0x0f0f0f0f);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+   tegra_stream_push(stream, 0x00000000);
+
+   tegra_stream_push(stream, host1x_opcode_imm(0xe20, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe21, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe22, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe25, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe26, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe27, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe28, 0x0000));
+   tegra_stream_push(stream, host1x_opcode_imm(0xe29, 0x0000));
+
+   tegra_stream_end(stream);
+   tegra_stream_flush(stream);
+
+   return 0;
+}
 
 static int
 tegra_channel_create(struct tegra_context *context,
@@ -108,6 +301,8 @@ tegra_screen_context_create(struct pipe_screen *pscreen,
       fprintf(stderr, "tegra_channel_create() failed: %d\n", err);
       return NULL;
    }
+
+   init(&context->gr3d->stream);
 
    slab_create_child(&context->transfer_pool, &screen->transfer_pool);
 
