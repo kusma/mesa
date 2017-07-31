@@ -50,6 +50,25 @@ tegra_set_framebuffer_state(struct pipe_context *pcontext,
 	unsigned int i;
 	uint32_t mask = 0;
 
+	if (framebuffer->zsbuf) {
+		struct tegra_resource *res = tegra_resource(framebuffer->zsbuf->texture);
+		uint32_t rt_params;
+
+		rt_params  = TGR3D_VAL(RT_PARAMS, FORMAT, res->format);
+		rt_params |= TGR3D_VAL(RT_PARAMS, PITCH, res->pitch);
+		rt_params |= TGR3D_BOOL(RT_PARAMS, TILED, res->tiled);
+
+		context->framebuffer.rt_params[0] = rt_params;
+		context->framebuffer.bos[0] = res->bo;
+		mask |= 1;
+	} else {
+		context->framebuffer.rt_params[0] = 0;
+		context->framebuffer.bos[0] = NULL;
+	}
+
+	pipe_surface_reference(&context->framebuffer.base.zsbuf,
+			       framebuffer->zsbuf);
+
 	for (i = 0; i < framebuffer->nr_cbufs; i++) {
 		struct pipe_surface *ref = framebuffer->cbufs[i];
 		struct tegra_resource *res = tegra_resource(ref->texture);
@@ -59,34 +78,17 @@ tegra_set_framebuffer_state(struct pipe_context *pcontext,
 		rt_params |= TGR3D_VAL(RT_PARAMS, PITCH, res->pitch);
 		rt_params |= TGR3D_BOOL(RT_PARAMS, TILED, res->tiled);
 
-		context->framebuffer.rt_params[i] = rt_params;
-		context->framebuffer.bos[i] = res->bo;
-		mask |= 1 << i;
+		context->framebuffer.rt_params[1 + i] = rt_params;
+		context->framebuffer.bos[1 + i] = res->bo;
+		mask |= 1 << (1 + i);
 
 		pipe_surface_reference(&cso->cbufs[i], ref);
 	}
 
 	for (; i < cso->nr_cbufs; i++)
-                pipe_surface_reference(&cso->cbufs[i], NULL);
+		pipe_surface_reference(&cso->cbufs[i], NULL);
 
-	pipe_surface_reference(&context->framebuffer.base.zsbuf,
-			       framebuffer->zsbuf);
-
-	if (framebuffer->zsbuf) {
-		struct tegra_resource *res = tegra_resource(framebuffer->zsbuf->texture);
-		uint32_t rt_params;
-
-		rt_params  = TGR3D_VAL(RT_PARAMS, FORMAT, res->format);
-		rt_params |= TGR3D_VAL(RT_PARAMS, PITCH, res->pitch);
-		rt_params |= TGR3D_BOOL(RT_PARAMS, TILED, res->tiled);
-
-		context->framebuffer.rt_params[i] = rt_params;
-		context->framebuffer.bos[i] = res->bo;
-		mask |= 1 << i;
-		++i;
-	}
-
-	context->framebuffer.num_rts = i;
+	context->framebuffer.num_rts = 1 + i;
 	context->framebuffer.mask = mask;
 
 	context->framebuffer.base.width = framebuffer->width;
