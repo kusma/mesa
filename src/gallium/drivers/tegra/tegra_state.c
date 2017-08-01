@@ -129,11 +129,11 @@ static void tegra_set_viewport_states(struct pipe_context *pcontext,
 	assert(num_viewports == 1);
 	assert(start_slot == 0);
 
-	context->viewport[0] = u_bitcast_f2u(viewports[0].translate[0] * 16.0f + viewports[0].scale[0] * 8.0f);
-	context->viewport[1] = u_bitcast_f2u(viewports[0].translate[1] * 16.0f + viewports[0].scale[1] * 8.0f);
+	context->viewport[0] = u_bitcast_f2u(viewports[0].translate[0] * 16.0f);
+	context->viewport[1] = u_bitcast_f2u(viewports[0].translate[1] * 16.0f);
 	context->viewport[2] = u_bitcast_f2u(viewports[0].translate[2] - zeps);
-	context->viewport[3] = u_bitcast_f2u(viewports[0].scale[0] * 8.0f);
-	context->viewport[4] = u_bitcast_f2u(viewports[0].scale[1] * 8.0f);
+	context->viewport[3] = u_bitcast_f2u(viewports[0].scale[0] * 16.0f);
+	context->viewport[4] = u_bitcast_f2u(viewports[0].scale[1] * 16.0f);
 	context->viewport[5] = u_bitcast_f2u(viewports[0].scale[2] - zeps);
 
 	/**
