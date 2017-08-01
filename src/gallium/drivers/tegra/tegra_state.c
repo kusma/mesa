@@ -462,7 +462,7 @@ static void emit_attribs(struct tegra_context *context)
 		attrib |= TGR3D_VAL(ATTRIB_MODE, STRIDE, vb->stride);
 
 		tegra_stream_push(stream, host1x_opcode_incr(TGR3D_ATTRIB_PTR(i), 2));
-		tegra_stream_push_reloc(stream, r->bo, e->offset);
+		tegra_stream_push_reloc(stream, r->bo, vb->buffer_offset + e->offset);
 		tegra_stream_push(stream, attrib);
 	}
 }
