@@ -129,6 +129,19 @@ tegra_set_viewport_states(struct pipe_context *pcontext,
    context->viewport[3] = u_bitcast_f2u(viewports[0].scale[0] * 16.0f);
    context->viewport[4] = u_bitcast_f2u(viewports[0].scale[1] * 16.0f);
    context->viewport[5] = u_bitcast_f2u(viewports[0].scale[2] - zeps);
+
+   /**
+    * It seems wrong to calculate the guard-band based on the viewport, as
+    * fragments can be produced outside it.
+    *
+    * However, this seems to be what the BLOB does, so let's stick to it
+    * for now.
+    **/
+
+   assert(viewports[0].scale[0] >= 0.0f);
+   context->guardband[0] = u_bitcast_f2u((4096 - viewports[0].scale[0]) / viewports[0].scale[0]);
+   context->guardband[1] = u_bitcast_f2u((4096 - fabs(viewports[0].scale[1])) / fabs(viewports[0].scale[1]));
+   context->guardband[2] = u_bitcast_f2u((4 - viewports[0].scale[2]) / viewports[0].scale[2] - powf(2.0f, -12));
 }
 
 static void
@@ -470,6 +483,15 @@ emit_viewport(struct tegra_context *context)
 }
 
 static void
+emit_guardband(struct tegra_context *context)
+{
+   struct tegra_stream *stream = &context->gr3d->stream;
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_GUARDBAND_WIDTH, 3));
+   push_words(stream, context->guardband, 3);
+}
+
+static void
 emit_vs_uniforms(struct tegra_context *context)
 {
    struct tegra_stream *stream = &context->gr3d->stream;
@@ -493,6 +515,7 @@ tegra_emit_state(struct tegra_context *context)
 {
    emit_render_targets(context);
    emit_viewport(context);
+   emit_guardband(context);
    emit_scissor(context);
    emit_attribs(context);
    emit_vs_uniforms(context);

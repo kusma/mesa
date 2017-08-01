@@ -39,6 +39,7 @@ struct tegra_context {
 
    uint32_t no_scissor[2];
    uint32_t viewport[6];
+   uint32_t guardband[6];
 };
 
 static inline struct tegra_context *
