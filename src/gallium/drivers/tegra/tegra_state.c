@@ -485,6 +485,17 @@ emit_guardband(struct tegra_context *context)
 }
 
 static void
+emit_depth_range(struct tegra_context *context)
+{
+   struct tegra_stream *stream = &context->gr3d->stream;
+
+   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_DEPTH_RANGE_NEAR, 2));
+   /* TODO: use the values from the context */
+   tegra_stream_push(stream, 0);
+   tegra_stream_push(stream, (1 << 16) - 1);
+}
+
+static void
 emit_vs_uniforms(struct tegra_context *context)
 {
    struct tegra_stream *stream = &context->gr3d->stream;
@@ -510,6 +521,7 @@ tegra_emit_state(struct tegra_context *context)
    emit_viewport(context);
    emit_guardband(context);
    emit_scissor(context);
+   emit_depth_range(context);
    emit_attribs(context);
    emit_vs_uniforms(context);
 }
