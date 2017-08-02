@@ -2,8 +2,10 @@
 
 #include "util/u_helpers.h"
 #include "util/u_memory.h"
+#include "util/u_format.h"
 
 #include "tegra_context.h"
+#include "tegra_resource.h"
 #include "tegra_state.h"
 
 #include "tgr_3d.xml.h"
@@ -285,15 +287,79 @@ tegra_context_zsa_init(struct pipe_context *pcontext)
    pcontext->delete_depth_stencil_alpha_state = tegra_delete_zsa_state;
 }
 
+/*
+ * Note: this does not include the stride, which needs to be mixed in later
+ **/
+static uint32_t tegra_attrib_mode(const struct pipe_vertex_element *e)
+{
+   const struct util_format_description *desc = util_format_description(e->src_format);
+   const int c = util_format_get_first_non_void_channel(e->src_format);
+   uint32_t type, format;
+
+   assert(!desc->is_mixed);
+   assert(c >= 0);
+
+   switch (desc->channel[c].type) {
+   case UTIL_FORMAT_TYPE_UNSIGNED:
+   case UTIL_FORMAT_TYPE_SIGNED:
+      switch (desc->channel[c].size) {
+      case 8:
+         type = TGR3D_ATTRIB_TYPE_UBYTE;
+         break;
+
+      case 16:
+         type = TGR3D_ATTRIB_TYPE_USHORT;
+         break;
+
+      case 32:
+         type = TGR3D_ATTRIB_TYPE_UINT;
+         break;
+
+      default:
+         unreachable("invalid channel-size");
+      }
+
+      if (desc->channel[c].type == UTIL_FORMAT_TYPE_SIGNED)
+         type += 2;
+
+      if (desc->channel[c].normalized)
+         type += 1;
+
+      break;
+
+   case UTIL_FORMAT_TYPE_FIXED:
+      assert(desc->channel[c].size == 32);
+      type = TGR3D_ATTRIB_TYPE_FIXED16;
+      break;
+
+   case UTIL_FORMAT_TYPE_FLOAT:
+      assert(desc->channel[c].size == 32); /* TODO: float16 ? */
+      type = TGR3D_ATTRIB_TYPE_FLOAT32;
+      break;
+   }
+
+   format  = TGR3D_VAL(ATTRIB_MODE, TYPE, type);
+   format |= TGR3D_VAL(ATTRIB_MODE, SIZE, desc->nr_channels);
+   return format;
+}
+
 static void *
 tegra_create_vertex_state(struct pipe_context *pcontext, unsigned int count,
                           const struct pipe_vertex_element *elements)
 {
+   unsigned int i;
    struct tegra_vertex_state *vtx = CALLOC_STRUCT(tegra_vertex_state);
    if (!vtx)
       return NULL;
 
-   memcpy(vtx->elements, elements, sizeof(*elements) * count);
+   for (i = 0; i < count; ++i) {
+      const struct pipe_vertex_element *src = elements + i;
+      struct tegra_vertex_element *dst = vtx->elements + i;
+      dst->attrib = tegra_attrib_mode(src);
+      dst->buffer_index = src->vertex_buffer_index;
+      dst->offset = src->src_offset;
+   }
+
    vtx->num_elements = count;
 
    return vtx;
@@ -302,31 +368,40 @@ tegra_create_vertex_state(struct pipe_context *pcontext, unsigned int count,
 static void
 tegra_bind_vertex_state(struct pipe_context *pcontext, void *so)
 {
-   struct tegra_vertex_state *vs = so;
-   unsigned int i;
-
-   fprintf(stdout, "> %s(pcontext=%p, so=%p)\n", __func__, pcontext, so);
-   if (vs) {
-      fprintf(stdout, "  vs:\n");
-      fprintf(stdout, "    num_elements: %u\n", vs->num_elements);
-
-      for (i = 0; i < vs->num_elements; i++) {
-         struct pipe_vertex_element *element = &vs->elements[i];
-
-         fprintf(stdout, "      %u:\n", i);
-         fprintf(stdout, "        src_offset: %u\n", element->src_offset);
-         fprintf(stdout, "        instance_divisor: %u\n", element->instance_divisor);
-         fprintf(stdout, "        vertex_buffer_index: %u\n", element->vertex_buffer_index);
-         fprintf(stdout, "        src_format: %d\n", element->src_format);
-      }
-   }
-   fprintf(stdout, "< %s()\n", __func__);
+   tegra_context(pcontext)->vs = so;
 }
 
 static void
 tegra_delete_vertex_state(struct pipe_context *pcontext, void *so)
 {
    FREE(so);
+}
+
+static void
+emit_attribs(struct tegra_context *context)
+{
+   unsigned int i;
+   struct tegra_stream *stream = &context->gr3d->stream;
+
+   assert(context->vs);
+
+   for (i = 0; i < context->vs->num_elements; ++i) {
+      const struct pipe_vertex_buffer *vb;
+      const struct tegra_vertex_element *e = context->vs->elements + i;
+      const struct tegra_resource *r;
+
+      assert(e->buffer_index < context->vbs.count);
+      vb = context->vbs.vb + e->buffer_index;
+      assert(!vb->is_user_buffer);
+      r = tegra_resource(vb->buffer.resource);
+
+      uint32_t attrib = e->attrib;
+      attrib |= TGR3D_VAL(ATTRIB_MODE, STRIDE, vb->stride);
+
+      tegra_stream_push(stream, host1x_opcode_incr(TGR3D_ATTRIB_PTR(i), 2));
+      tegra_stream_push_reloc(stream, r->bo, vb->buffer_offset + e->offset);
+      tegra_stream_push(stream, attrib);
+   }
 }
 
 static void
@@ -352,6 +427,8 @@ tegra_draw_vbo(struct pipe_context *pcontext,
    }
 
    tegra_stream_push_setclass(&gr3d->stream, HOST1X_CLASS_GR3D);
+
+   emit_attribs(context);
 
    /* TODO: draw */
 
