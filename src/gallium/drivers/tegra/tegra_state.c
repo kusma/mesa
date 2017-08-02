@@ -25,7 +25,12 @@ tegra_set_constant_buffer(struct pipe_context *pcontext,
                           unsigned int shader, unsigned int index,
                           const struct pipe_constant_buffer *buffer)
 {
-   unimplemented();
+   struct tegra_context *context = tegra_context(pcontext);
+
+   assert(index == 0);
+   assert(!buffer || buffer->user_buffer);
+
+   util_copy_constant_buffer(&context->constant_buffer[shader], buffer);
 }
 
 static void
@@ -464,6 +469,25 @@ emit_viewport(struct tegra_context *context)
    push_words(stream, context->viewport, 6);
 }
 
+static void
+emit_vs_uniforms(struct tegra_context *context)
+{
+   struct tegra_stream *stream = &context->gr3d->stream;
+   struct pipe_constant_buffer *constbuf = &context->constant_buffer[PIPE_SHADER_VERTEX];
+   int len;
+
+   if (constbuf->user_buffer != NULL) {
+      assert(constbuf->buffer_size % sizeof(uint32_t) == 0);
+
+      len = constbuf->buffer_size / 4;
+      assert(len < 256 * 4);
+
+      tegra_stream_push(stream, host1x_opcode_imm(TGR3D_VP_UPLOAD_CONST_ID, 0));
+      tegra_stream_push(stream, host1x_opcode_nonincr(TGR3D_VP_UPLOAD_CONST, len));
+      push_words(stream, constbuf->user_buffer, len);
+   }
+}
+
 void
 tegra_emit_state(struct tegra_context *context)
 {
@@ -471,6 +495,7 @@ tegra_emit_state(struct tegra_context *context)
    emit_viewport(context);
    emit_scissor(context);
    emit_attribs(context);
+   emit_vs_uniforms(context);
 }
 
 void
