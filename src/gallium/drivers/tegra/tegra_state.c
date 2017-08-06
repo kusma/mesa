@@ -27,7 +27,25 @@ static void
 tegra_set_framebuffer_state(struct pipe_context *pcontext,
                             const struct pipe_framebuffer_state *framebuffer)
 {
-   unimplemented();
+   struct tegra_context *context = tegra_context(pcontext);
+   unsigned int i;
+
+   for (i = 0; i < framebuffer->nr_cbufs; i++) {
+      struct pipe_surface *ref = framebuffer->cbufs[i];
+
+      if (i >= framebuffer->nr_cbufs)
+         ref = NULL;
+
+      pipe_surface_reference(&context->framebuffer.base.cbufs[i],
+                   ref);
+   }
+
+   pipe_surface_reference(&context->framebuffer.base.zsbuf,
+                framebuffer->zsbuf);
+
+   context->framebuffer.base.width = framebuffer->width;
+   context->framebuffer.base.height = framebuffer->height;
+   context->framebuffer.base.nr_cbufs = framebuffer->nr_cbufs;
 }
 
 static void
