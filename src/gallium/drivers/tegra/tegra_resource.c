@@ -75,8 +75,38 @@ tegra_resource_transfer_map(struct pipe_context *pcontext,
                             const struct pipe_box *box,
                             struct pipe_transfer **transfer)
 {
-   unimplemented();
+   struct tegra_context *context = tegra_context(pcontext);
+   struct tegra_resource *resource = tegra_resource(presource);
+   void *ret = NULL;
+   struct pipe_transfer *ptrans;
 
+   if (usage & PIPE_TRANSFER_MAP_DIRECTLY)
+      goto out;
+
+   if (drm_tegra_bo_map(resource->bo, &ret))
+      goto err;
+
+   ptrans = slab_alloc(&context->transfer_pool);
+   if (!ptrans)
+      goto err;
+
+   memset(ptrans, 0, sizeof(*ptrans));
+
+   pipe_resource_reference(&ptrans->resource, presource);
+   ptrans->resource = presource;
+   ptrans->level = level;
+   ptrans->usage = usage;
+   ptrans->box = *box;
+   ptrans->stride = resource->pitch;
+   ptrans->layer_stride = ptrans->stride;
+   *transfer = ptrans;
+
+out:
+   return ret;
+
+err:
+   if (ret)
+      drm_tegra_bo_unmap(resource->bo);
    return NULL;
 }
 
@@ -91,7 +121,12 @@ static void
 tegra_resource_transfer_unmap(struct pipe_context *pcontext,
                               struct pipe_transfer *transfer)
 {
-   unimplemented();
+   struct tegra_context *context = tegra_context(pcontext);
+
+   drm_tegra_bo_unmap(tegra_resource(transfer->resource)->bo);
+
+   pipe_resource_reference(&transfer->resource, NULL);
+   slab_free(&context->transfer_pool, transfer);
 }
 
 static const struct u_resource_vtbl tegra_resource_vtbl = {
