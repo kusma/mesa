@@ -4,10 +4,27 @@
 #include "pipe/p_context.h"
 #include "pipe/p_state.h"
 
-struct tegra_stream;
+struct tegra_context;
+
+struct tegra_vertexbuf_state {
+   struct pipe_vertex_buffer vb[PIPE_MAX_ATTRIBS];
+   unsigned int count;
+   uint32_t enabled;
+};
+
+struct tegra_vertex_element {
+   uint32_t attrib;
+   unsigned int buffer_index;
+   unsigned int offset;
+};
+
+struct tegra_vertex_state {
+   struct tegra_vertex_element elements[PIPE_MAX_ATTRIBS];
+   unsigned int num_elements;
+};
 
 void
-tegra_emit_state(struct tegra_stream *stream);
+tegra_emit_state(struct tegra_context *context);
 
 void
 tegra_context_state_init(struct pipe_context *pcontext);

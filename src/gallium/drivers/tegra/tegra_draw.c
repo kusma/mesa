@@ -24,7 +24,7 @@ tegra_draw_vbo(struct pipe_context *pcontext,
 
    tegra_stream_push_setclass(&gr3d->stream, HOST1X_CLASS_GR3D);
 
-   tegra_emit_state(&gr3d->stream);
+   tegra_emit_state(context);
 
    /* TODO: draw */
 
