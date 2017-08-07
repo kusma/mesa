@@ -5,7 +5,6 @@
 #include "util/u_memory.h"
 #include "util/u_pack_color.h"
 #include "util/u_transfer.h"
-#include "util/u_inlines.h"
 
 #include "tegra_common.h"
 #include "tegra_context.h"
