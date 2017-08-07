@@ -6,9 +6,9 @@
 #include "util/u_memory.h"
 #include "util/u_upload_mgr.h"
 
-#include "tegra_common.h"
 #include "tegra_context.h"
 #include "tegra_draw.h"
+#include "tegra_fence.h"
 #include "tegra_program.h"
 #include "tegra_resource.h"
 #include "tegra_screen.h"
@@ -270,7 +270,19 @@ tegra_context_flush(struct pipe_context *pcontext,
                     struct pipe_fence_handle **pfence,
                     enum pipe_flush_flags flags)
 {
-   unimplemented();
+   if (pfence) {
+      struct tegra_fence *fence;
+
+      fence = CALLOC_STRUCT(tegra_fence);
+      if (!fence) {
+         perror("calloc failed"); /* TODO: need a better way of handling this */
+         return;
+      }
+
+      pipe_reference_init(&fence->reference, 1);
+
+      *pfence = (struct pipe_fence_handle *)fence;
+   }
 }
 
 struct pipe_context *
