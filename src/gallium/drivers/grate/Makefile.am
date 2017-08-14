@@ -16,6 +16,8 @@ libtegra_la_SOURCES = \
 	host1x01_hardware.h \
 	hw_host1x01_uclass.h \
 	grate_common.h \
+	grate_compiler_vpe.c \
+	grate_compiler.h \
 	grate_context.c \
 	grate_context.h \
 	grate_draw.c \
@@ -32,4 +34,6 @@ libtegra_la_SOURCES = \
 	grate_stream.c \
 	grate_stream.h \
 	grate_surface.c \
-	grate_surface.h
+	grate_surface.h \
+	vpe_ir.c \
+	vpe_ir.h
