@@ -6,6 +6,8 @@
 
 struct tegra_vs_state {
    struct pipe_shader_state base;
+   uint32_t *vp_insts;
+   size_t num_vp_insts;
 };
 
 struct tegra_fs_state {
