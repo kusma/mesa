@@ -3,12 +3,15 @@
 #include "util/u_memory.h"
 
 #include "tgsi/tgsi_dump.h"
+#include "tgsi/tgsi_parse.h"
 
+#include "host1x01_hardware.h"
 #include "tegra_common.h"
 #include "tegra_context.h"
 #include "tegra_screen.h"
 #include "tegra_program.h"
-
+#include "tegra_compiler.h"
+#include "tgr_3d.xml.h"
 
 static void *
 tegra_create_vs_state(struct pipe_context *pcontext,
@@ -26,15 +29,39 @@ tegra_create_vs_state(struct pipe_context *pcontext,
       fprintf(stderr, "\n");
    }
 
-   /* TODO: generate code! */
+   struct tgsi_parse_context parser;
+   unsigned ok = tgsi_parse_init(&parser, template->tokens);
+   assert(ok == TGSI_PARSE_OK);
 
+   struct tegra_vpe_shader vpe;
+   tegra_tgsi_to_vpe(&vpe, &parser);
+
+   assert(vpe.num_instructions < 256);
+   int num_commands = 2 + vpe.num_instructions * 4;
+   uint32_t *commands = MALLOC(num_commands * sizeof(uint32_t));
+   if (!commands) {
+      FREE(so);
+      return NULL;
+   }
+
+   commands[0] = host1x_opcode_imm(TGR3D_VP_UPLOAD_INST_ID, 0);
+   commands[1] = host1x_opcode_nonincr(TGR3D_VP_UPLOAD_INST,
+                                       vpe.num_instructions * 4);
+
+   for (int i = 0; i < vpe.num_instructions; ++i) {
+      bool end_of_program = i == (vpe.num_instructions - 1);
+      tegra_vpe_pack(commands + 2 + i * 4, vpe.instructions[i], end_of_program);
+   }
+
+   so->commands = commands;
+   so->num_commands = num_commands;
    return so;
 }
 
 static void
 tegra_bind_vs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->vshader = so;
 }
 
 static void
