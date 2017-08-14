@@ -32,4 +32,7 @@ libtegra_la_SOURCES = \
 	tegra_stream.c \
 	tegra_stream.h \
 	tegra_surface.c \
-	tegra_surface.h
+	tegra_surface.h \
+	vpe_ir.c \
+	vpe_ir.h \
+	vpe_vliw.h
