@@ -3,6 +3,7 @@
 #include "util/u_memory.h"
 
 #include "tgsi/tgsi_dump.h"
+#include "tgsi/tgsi_parse.h"
 
 #include "tegra_common.h"
 #include "tegra_context.h"
@@ -118,6 +119,22 @@ tegra_create_vs_state(struct pipe_context *pcontext,
       fprintf(stderr, "DEBUG: TGSI:\n");
       tgsi_dump(template->tokens, 0);
       fprintf(stderr, "\n");
+   }
+
+   struct tgsi_parse_context parser;
+   unsigned ok = tgsi_parse_init(&parser, template->tokens);
+   assert(ok == TGSI_PARSE_OK);
+
+   while (!tgsi_parse_end_of_tokens(&parser)) {
+      tgsi_parse_token(&parser);
+      switch (parser.FullToken.Token.Type) {
+      case TGSI_TOKEN_TYPE_INSTRUCTION:
+/*
+         TODO: emit instructions!
+         shader[shader_len++] = emit_vpe_instruction(&parser.FullToken.FullInstruction);
+*/
+         break;
+      }
    }
 
    /* TODO: generate code! */
