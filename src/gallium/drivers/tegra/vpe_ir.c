@@ -8,6 +8,12 @@
 void
 tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
 {
+#if 0
+   /* we can only handle one output register per instruction */
+   assert(instr.vec.dst.file != VPE_DST_FILE_OUTPUT ||
+          instr.scalar.dst.file != VPE_DST_FILE_OUTPUT);
+#endif
+
    vpe_instr128 tmp = {
       .predicate_lt = 1,
       .predicate_eq = 1,
