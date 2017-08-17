@@ -577,7 +577,9 @@ emit_vertex_shader(struct tegra_stream *stream, struct tegra_vs_state *vshader)
    tegra_stream_push_words(stream, vshader->vp_insts, vshader->num_vp_insts, 0);
 
    tegra_stream_push(stream, host1x_opcode_incr(TGR3D_VP_ATTRIB_IN_OUT_SELECT, 1));
-   tegra_stream_push(stream, 0x00030081);
+   int input_mask = (1 << 0) | (1 << 1);
+   int output_mask = (1 << 0) | (1 << 7);
+   tegra_stream_push(stream, (input_mask << 16) | output_mask);
 }
 
 static void
