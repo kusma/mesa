@@ -3,6 +3,7 @@
 #include "util/u_memory.h"
 
 #include "tgsi/tgsi_dump.h"
+#include "tgsi/tgsi_parse.h"
 
 #include "tegra_common.h"
 #include "tegra_context.h"
@@ -126,6 +127,67 @@ emit_packed(struct vpe_vec_instr vec, struct vpe_scalar_instr scalar)
    return ret;
 }
 
+static struct vpe_dst_operand
+tgsi_dst_to_vpe(const struct tgsi_dst_register *dst)
+{
+   switch (dst->File) {
+   case TGSI_FILE_OUTPUT:
+      return output(dst->Index, dst->WriteMask);
+
+   case TGSI_FILE_TEMPORARY:
+      return dst_temp(dst->Index, dst->WriteMask);
+
+   default:
+      unreachable("unsupported output");
+   }
+}
+
+static struct vpe_src_operand
+tgsi_src_to_vpe(const struct tgsi_src_register *src)
+{
+   enum vpe_swz swizzle[4] = {
+      src->SwizzleX,
+      src->SwizzleY,
+      src->SwizzleZ,
+      src->SwizzleW
+   };
+
+   switch (src->File) {
+   case TGSI_FILE_INPUT:
+      return attrib(src->Index, swizzle);
+
+   case TGSI_FILE_CONSTANT:
+      return uniform(src->Index, swizzle);
+
+   case TGSI_FILE_TEMPORARY:
+      return src_temp(src->Index, swizzle);
+
+   default:
+      unreachable("unsupported output");
+   }
+}
+
+
+static struct vpe_instr
+tgsi_to_vpe(const struct tgsi_full_instruction *inst)
+{
+   switch (inst->Instruction.Opcode) {
+   case TGSI_OPCODE_MOV:
+      return emit_packed(emit_vMOV(tgsi_dst_to_vpe(&inst->Dst[0].Register),
+                                   tgsi_src_to_vpe(&inst->Src[0].Register)),
+                         emit_sNOP());
+
+   case TGSI_OPCODE_ADD:
+      return emit_packed(emit_vADD(tgsi_dst_to_vpe(&inst->Dst[0].Register),
+                                   tgsi_src_to_vpe(&inst->Src[0].Register),
+                                   tgsi_src_to_vpe(&inst->Src[1].Register)),
+                         emit_sNOP());
+
+   default:
+      unreachable("unsupported TGSI-opcode!");
+   }
+}
+
 static void *
 tegra_create_vs_state(struct pipe_context *pcontext,
                       const struct pipe_shader_state *template)
@@ -142,15 +204,38 @@ tegra_create_vs_state(struct pipe_context *pcontext,
       fprintf(stderr, "\n");
    }
 
-   /* TODO: generate code! */
+   struct tgsi_parse_context parser;
+   unsigned ok = tgsi_parse_init(&parser, template->tokens);
+   assert(ok == TGSI_PARSE_OK);
 
+   struct vpe_instr vpe_instrs[256];
+   int num_vpe_instrs = 0;
+
+   while (!tgsi_parse_end_of_tokens(&parser)) {
+      tgsi_parse_token(&parser);
+      switch (parser.FullToken.Token.Type) {
+      case TGSI_TOKEN_TYPE_INSTRUCTION:
+         if (parser.FullToken.FullInstruction.Instruction.Opcode != TGSI_OPCODE_END)
+            vpe_instrs[num_vpe_instrs++] = tgsi_to_vpe(&parser.FullToken.FullInstruction);
+         break;
+      }
+   }
+
+   assert(num_vpe_instrs < 256);
+   so->num_vp_insts = num_vpe_instrs * 4;
+   uint32_t *dst = malloc(so->num_vp_insts * sizeof(uint32_t));
+   for (int i = 0; i < num_vpe_instrs; ++i) {
+      bool end_of_program = i == (num_vpe_instrs - 1);
+      tegra_vpe_pack(dst + i * 4, vpe_instrs[i], end_of_program);
+   }
+   so->vp_insts = dst;
    return so;
 }
 
 static void
 tegra_bind_vs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->vshader = so;
 }
 
 static void
