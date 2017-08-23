@@ -65,7 +65,7 @@ tegra_draw_vbo(struct pipe_context *pcontext,
    tegra_stream_push(stream, host1x_opcode_incr(TGR3D_VP_ATTRIB_IN_OUT_SELECT, 1));
    tegra_stream_push(stream, ((uint32_t)context->vs->mask << 16) | out_mask);
 
-   struct pipe_resource *index_buffer;
+   struct pipe_resource *index_buffer = NULL;
    unsigned index_offset = 0;
    if (info->index_size > 0) {
       if (info->has_user_indices) {
