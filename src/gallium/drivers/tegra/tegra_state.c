@@ -296,13 +296,31 @@ tegra_create_zsa_state(struct pipe_context *pcontext,
 
    so->base = *template;
 
+   uint32_t depth_min = 0x00000, depth_max = 0xFFFFF;
+   if (template->depth.bounds_test) {
+      depth_min = 0xFFFFF * template->depth.bounds_min;
+      depth_max = 0xFFFFF * template->depth.bounds_max;
+   }
+
+   uint32_t depth_test = 0;
+   depth_test |= TGR3D_VAL(DEPTH_TEST_PARAMS, FUNC, template->depth.func);
+   depth_test |= TGR3D_BOOL(DEPTH_TEST_PARAMS, DEPTH_TEST, template->depth.enabled);
+   depth_test |= TGR3D_BOOL(DEPTH_TEST_PARAMS, DEPTH_WRITE, template->depth.writemask);
+   depth_test |= 0x200;
+
+   so->commands[0] = host1x_opcode_incr(TGR3D_DEPTH_RANGE_NEAR, 2);
+   so->commands[1] = depth_min;
+   so->commands[2] = depth_max;
+   so->commands[3] = host1x_opcode_incr(TGR3D_DEPTH_TEST_PARAMS, 1);
+   so->commands[4] = depth_test;
+
    return so;
 }
 
 static void
 tegra_bind_zsa_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->zsa = so;
 }
 
 static void
@@ -450,6 +468,7 @@ emit_render_targets(struct tegra_context *context)
    unsigned int i;
    struct tegra_stream *stream = &context->gr3d->stream;
    const struct tegra_framebuffer_state *fb = &context->framebuffer;
+   const struct pipe_depth_stencil_alpha_state *zsa = &context->zsa->base;
 
    tegra_stream_push(stream, host1x_opcode_incr(TGR3D_RT_PARAMS(0), fb->num_rts));
    for (i = 0; i < fb->num_rts; ++i) {
@@ -463,8 +482,13 @@ emit_render_targets(struct tegra_context *context)
    for (i = 0; i < fb->num_rts; ++i)
       tegra_stream_push_reloc(stream, fb->bos[i], 0);
 
+   uint32_t mask = fb->mask;
+
+   if (zsa->depth.enabled)
+      mask |= TGR3D_RT_ENABLE_DEPTH_BUFFER;
+
    tegra_stream_push(stream, host1x_opcode_incr(TGR3D_RT_ENABLE, 1));
-   tegra_stream_push(stream, fb->mask);
+   tegra_stream_push(stream, mask);
 }
 
 static void
@@ -489,14 +513,10 @@ emit_guardband(struct tegra_context *context)
 }
 
 static void
-emit_depth_range(struct tegra_context *context)
+emit_zsa_state(struct tegra_context *context)
 {
    struct tegra_stream *stream = &context->gr3d->stream;
-
-   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_DEPTH_RANGE_NEAR, 2));
-   /* TODO: use the values from the context */
-   tegra_stream_push(stream, 0);
-   tegra_stream_push(stream, (1 << 16) - 1);
+   tegra_stream_push_words(stream, context->zsa->commands, 5, 0);
 }
 
 static void
@@ -552,7 +572,7 @@ tegra_emit_state(struct tegra_context *context)
    emit_viewport(context);
    emit_guardband(context);
    emit_scissor(context);
-   emit_depth_range(context);
+   emit_zsa_state(context);
    emit_attribs(context);
    emit_vs_uniforms(context);
    emit_program(context);
