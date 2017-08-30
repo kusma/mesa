@@ -20,6 +20,12 @@ tegra_create_vs_state(struct pipe_context *pcontext,
 
    so->base = *template;
 
+   if (tegra_debug & TEGRA_DEBUG_TGSI) {
+      fprintf(stderr, "DEBUG: TGSI:\n");
+      tgsi_dump(template->tokens, 0);
+      fprintf(stderr, "\n");
+   }
+
    /* TODO: generate code! */
 
    return so;
@@ -46,6 +52,12 @@ tegra_create_fs_state(struct pipe_context *pcontext,
       return NULL;
 
    so->base = *template;
+
+   if (tegra_debug & TEGRA_DEBUG_TGSI) {
+      fprintf(stderr, "DEBUG: TGSI:\n");
+      tgsi_dump(template->tokens, 0);
+      fprintf(stderr, "\n");
+   }
 
    /* TODO: generate code! */
 
