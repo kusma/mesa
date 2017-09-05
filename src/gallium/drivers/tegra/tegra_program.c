@@ -407,13 +407,78 @@ tegra_create_fs_state(struct pipe_context *pcontext,
 
    /* TODO: generate code! */
 
+   uint32_t prologue[] = {
+      host1x_opcode_incr(TGR3D_ALU_BUFFER_SIZE, 1),
+      0x58000000,
+
+      host1x_opcode_imm(TGR3D_FP_PSEQ_QUAD_ID, 0),
+      host1x_opcode_imm(TGR3D_FP_UPLOAD_INST_ID_COMMON, 0),
+      host1x_opcode_imm(TGR3D_FP_UPLOAD_MFU_INST_ID, 0),
+      host1x_opcode_imm(TGR3D_FP_UPLOAD_ALU_INST_ID, 0),
+
+      host1x_opcode_incr(TGR3D_FP_PSEQ_ENGINE_INST, 1),
+      0x20006001,
+
+      host1x_opcode_incr(TGR3D_FP_PSEQ_DW_CFG, 1),
+      0x00000040,
+
+      host1x_opcode_incr(TGR3D_FP_PSEQ_UPLOAD_INST_BUFFER_FLUSH, 1),
+      0x00000000,
+
+      host1x_opcode_nonincr(TGR3D_FP_PSEQ_UPLOAD_INST, 1),
+      0x00000000,
+
+      host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_SCHED, 1),
+      0x00000001,
+
+      host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_INST, 2),
+      0x104e51ba,
+      0x00408102,
+
+      host1x_opcode_nonincr(TGR3D_FP_UPLOAD_TEX_INST, 1),
+      0x00000000,
+
+      host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_SCHED,1),
+      0x00000001,
+
+      host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST, 8),
+      0x0001c0c0,
+      0x3f41f231,
+      0x0001a040,
+      0x3f41f231,
+      0x00014000,
+      0x3f41f231,
+      0x00012080,
+      0x3f41f231,
+
+      host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST_COMPLEMENT, 1),
+      0x00000000,
+
+      host1x_opcode_nonincr(TGR3D_FP_UPLOAD_DW_INST, 1),
+      0x00028005,
+
+      host1x_opcode_imm(TGR3D_TRAM_SETUP, 0x0140)
+   };
+
+   int num_commands = ARRAY_SIZE(prologue);
+
+   uint32_t *commands = MALLOC(num_commands * sizeof(uint32_t));
+   if (!commands) {
+      FREE(so);
+      return NULL;
+   }
+
+   memcpy(commands, prologue, sizeof(prologue));
+
+   so->commands = commands;
+   so->num_commands = num_commands;
    return so;
 }
 
 static void
 tegra_bind_fs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->fshader = so;
 }
 
 static void
