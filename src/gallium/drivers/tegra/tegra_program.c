@@ -5,10 +5,12 @@
 #include "tgsi/tgsi_dump.h"
 #include "tgsi/tgsi_parse.h"
 
+#include "host1x01_hardware.h"
 #include "tegra_common.h"
 #include "tegra_context.h"
 #include "tegra_screen.h"
 #include "tegra_program.h"
+#include "tgr_3d.xml.h"
 #include "vpe_ir.h"
 
 static struct vpe_src_operand
@@ -356,13 +358,22 @@ tegra_create_vs_state(struct pipe_context *pcontext,
    }
 
    assert(num_vpe_instrs < 256);
-   so->num_vp_insts = num_vpe_instrs * 4;
-   uint32_t *dst = malloc(so->num_vp_insts * sizeof(uint32_t));
+   int num_commands = 2 + num_vpe_instrs * 4;
+   uint32_t *commands = MALLOC(num_commands * sizeof(uint32_t));
+   if (!commands) {
+      FREE(so);
+      return NULL;
+   }
+
+   commands[0] = host1x_opcode_imm(TGR3D_VP_UPLOAD_INST_ID, 0);
+   commands[1] = host1x_opcode_nonincr(TGR3D_VP_UPLOAD_INST, num_vpe_instrs * 4);
    for (int i = 0; i < num_vpe_instrs; ++i) {
       bool end_of_program = i == (num_vpe_instrs - 1);
-      tegra_vpe_pack(dst + i * 4, vpe_instrs[i], end_of_program);
+      tegra_vpe_pack(commands + 2 + i * 4, vpe_instrs[i], end_of_program);
    }
-   so->vp_insts = dst;
+
+   so->commands = commands;
+   so->num_commands = num_commands;
    return so;
 }
 
