@@ -13,9 +13,12 @@ AM_CFLAGS = \
 
 libtegra_la_SOURCES = \
 	class_ids.h \
+	fp_ir.c \
+	fp_ir.h \
 	host1x01_hardware.h \
 	hw_host1x01_uclass.h \
 	grate_common.h \
+	grate_compiler_fp.c \
 	grate_compiler_vpe.c \
 	grate_compiler.h \
 	grate_context.c \
