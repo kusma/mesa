@@ -527,6 +527,7 @@ emit_program(struct tegra_context *context)
    struct tegra_stream *stream = &context->gr3d->stream;
 
    emit_shader(stream, context->vshader);
+   emit_shader(stream, context->fshader);
 }
 
 void
