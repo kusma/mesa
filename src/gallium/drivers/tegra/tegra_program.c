@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 
+#include "util/u_dynarray.h"
 #include "util/u_memory.h"
 
 #include "tgsi/tgsi_dump.h"
@@ -88,13 +90,72 @@ tegra_create_fs_state(struct pipe_context *pcontext,
 
    /* TODO: generate code! */
 
+   struct util_dynarray buf;
+   util_dynarray_init(&buf, NULL);
+
+#define PUSH(x) util_dynarray_append(&buf, uint32_t, (x))
+   PUSH(host1x_opcode_incr(TGR3D_ALU_BUFFER_SIZE, 1));
+   PUSH(0x58000000);
+
+   PUSH(host1x_opcode_imm(TGR3D_FP_PSEQ_QUAD_ID, 0));
+   PUSH(host1x_opcode_imm(TGR3D_FP_UPLOAD_INST_ID_COMMON, 0));
+   PUSH(host1x_opcode_imm(TGR3D_FP_UPLOAD_MFU_INST_ID, 0));
+   PUSH(host1x_opcode_imm(TGR3D_FP_UPLOAD_ALU_INST_ID, 0));
+
+   PUSH(host1x_opcode_incr(TGR3D_FP_PSEQ_ENGINE_INST, 1));
+   PUSH(0x20006001);
+
+   PUSH(host1x_opcode_incr(TGR3D_FP_PSEQ_DW_CFG, 1));
+   PUSH(0x00000040);
+
+   PUSH(host1x_opcode_incr(TGR3D_FP_PSEQ_UPLOAD_INST_BUFFER_FLUSH, 1));
+   PUSH(0x00000000);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_PSEQ_UPLOAD_INST, 1));
+   PUSH(0x00000000);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_SCHED, 1));
+   PUSH(0x00000001);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_INST, 2));
+   PUSH(0x104e51ba);
+   PUSH(0x00408102);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_TEX_INST, 1));
+   PUSH(0x00000000);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_SCHED,1));
+   PUSH(0x00000001);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST, 8));
+   PUSH(0x0001c0c0);
+   PUSH(0x3f41f231);
+   PUSH(0x0001a040);
+   PUSH(0x3f41f231);
+   PUSH(0x00014000);
+   PUSH(0x3f41f231);
+   PUSH(0x00012080);
+   PUSH(0x3f41f231);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST_COMPLEMENT, 1));
+   PUSH(0x00000000);
+
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_DW_INST, 1));
+   PUSH(0x00028005);
+
+   PUSH(host1x_opcode_imm(TGR3D_TRAM_SETUP, 0x0140));
+#undef PUSH
+   util_dynarray_trim(&buf);
+
+   so->num_commands = buf.size / sizeof(uint32_t);
+   so->commands = buf.data;
    return so;
 }
 
 static void
 tegra_bind_fs_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->fshader = so;
 }
 
 static void
