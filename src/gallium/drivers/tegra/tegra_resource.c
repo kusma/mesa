@@ -188,13 +188,16 @@ tegra_screen_resource_create(struct pipe_screen *pscreen,
    resource->base.b.screen = pscreen;
 
    resource->pitch = template->width0 * util_format_get_blocksize(template->format);
-   /* TODO: use alignment specific to a surface type */
-   resource->pitch = align(resource->pitch, 256);
    height = template->height0;
 
    resource->tiled = 0;
    if (template->bind & (PIPE_BIND_RENDER_TARGET | PIPE_BIND_SAMPLER_VIEW |
                          PIPE_BIND_SCANOUT | PIPE_BIND_DEPTH_STENCIL)) {
+      if (template->bind & PIPE_BIND_DEPTH_STENCIL)
+         resource->pitch = align(resource->pitch, 256);
+      else
+         resource->pitch = align(resource->pitch, 32);
+
       flags = DRM_TEGRA_GEM_CREATE_BOTTOM_UP;
 
       /* use linear layout for staging-textures, otherwise tiled */
