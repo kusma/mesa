@@ -13,6 +13,8 @@ AM_CFLAGS = \
 
 libtegra_la_SOURCES = \
 	class_ids.h \
+	fp_ir.c \
+	fp_ir.h \
 	host1x01_hardware.h \
 	hw_host1x01_uclass.h \
 	tegra_common.h \
