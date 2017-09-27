@@ -16,6 +16,8 @@ libtegra_la_SOURCES = \
 	host1x01_hardware.h \
 	hw_host1x01_uclass.h \
 	tegra_common.h \
+	tegra_compiler.c \
+	tegra_compiler.h \
 	tegra_context.c \
 	tegra_context.h \
 	tegra_draw.c \
