@@ -278,7 +278,7 @@ pipe_tegra_create_screen(int fd, const struct pipe_screen_config *config)
 #else
 
 struct pipe_screen *
-pipe_tegra_create_screen(int fd)
+pipe_tegra_create_screen(int fd, const struct pipe_screen_config *config)
 {
    fprintf(stderr, "tegra: driver missing\n");
    return NULL;
