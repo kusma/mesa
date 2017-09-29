@@ -38,3 +38,28 @@ libtegra_la_SOURCES = \
 	vpe_ir.c \
 	vpe_ir.h \
 	vpe_vliw.h
+
+noinst_PROGRAMS = tegra_compiler
+
+tegra_compiler_SOURCES = \
+	tegra_compiler.c \
+	tegra_compiler.h \
+	tegra_compiler_cmdline.c \
+	vpe_ir.c \
+	vpe_ir.h
+
+tegra_compiler_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/gallium/auxiliary \
+	-I$(top_srcdir)/src/gallium/include \
+	-I$(top_srcdir)/src/mapi \
+	-I$(top_srcdir)/src/mesa
+
+tegra_compiler_LDADD = \
+	$(top_builddir)/src/gallium/auxiliary/libgallium.la \
+	$(top_builddir)/src/compiler/nir/libnir.la \
+	$(top_builddir)/src/compiler/glsl/libstandalone.la \
+	$(top_builddir)/src/util/libmesautil.la \
+	$(top_builddir)/src/mesa/libmesagallium.la \
+	$(GALLIUM_COMMON_LIB_DEPS)
