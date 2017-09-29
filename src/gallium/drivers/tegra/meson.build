@@ -61,6 +61,16 @@ libtegra = static_library(
   build_by_default : false,
 )
 
+tegra_compiler = executable(
+  'tegra_compiler',
+  'tegra_compiler_cmdline.c',
+  include_directories : [
+    inc_src, inc_include, inc_gallium, inc_gallium_aux
+  ],
+  link_with : [libtegra, libgallium, libmesa_util],
+  build_by_default : false,
+)
+
 driver_tegra = declare_dependency(
   compile_args : '-DGALLIUM_TEGRA',
   link_with : [libtegra, libtegrawinsys],
