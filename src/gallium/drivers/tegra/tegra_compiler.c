@@ -311,6 +311,48 @@ tgsi_to_vpe(const struct tgsi_full_instruction *inst)
    }
 }
 
+static struct fp_alu_src_operand
+fp_alu_src_row(int index)
+{
+   assert(index >= 0 && index < 16);
+   struct fp_alu_src_operand src = {
+      .index = index
+   };
+   return src;
+}
+
+static struct fp_alu_src_operand
+fp_alu_src_reg(int index)
+{
+   assert(index >= 0 && index < 8);
+   struct fp_alu_src_operand src = {
+      .index = 16 + index
+   };
+   return src;
+}
+
+static struct fp_alu_src_operand
+fp_alu_src_zero()
+{
+   struct fp_alu_src_operand src = {
+      .index = 31,
+      .datatype = FP_DATATYPE_FIXED10,
+      .sub_reg_select_high = 0
+   };
+   return src;
+}
+
+static struct fp_alu_src_operand
+fp_alu_src_one()
+{
+   struct fp_alu_src_operand src = {
+      .index = 31,
+      .datatype = FP_DATATYPE_FIXED10,
+      .sub_reg_select_high = 1
+   };
+   return src;
+}
+
 void
 tegra_tgsi_to_vpe(struct tegra_vpe_shader *vpe, struct tgsi_parse_context *tgsi)
 {
@@ -325,4 +367,96 @@ tegra_tgsi_to_vpe(struct tegra_vpe_shader *vpe, struct tgsi_parse_context *tgsi)
          break;
       }
    }
+}
+
+static void
+fp_alu_MOV(struct fp_instr *inst, const struct tgsi_dst_register *dst,
+           bool saturate, const struct tgsi_src_register *src)
+{
+   for (int i = 0; i < 4; ++i) {
+/*
+      if ((dst->WriteMask & (1 << i)) == 0)
+         continue;
+*/
+      inst->alu[i].op = FP_ALU_OP_MAD;
+
+      inst->alu[i].dst.index = 2 + dst->Index; // +2 to match hard-coded store shader for now
+      if (dst->File == TGSI_FILE_OUTPUT) {
+         // fixed10
+         inst->alu[i].dst.index += i / 2;
+         inst->alu[i].dst.write_low_sub_reg = (i % 2) == 0;
+         inst->alu[i].dst.write_high_sub_reg = (i % 2) != 0;
+      } else {
+         inst->alu[i].dst.index += i;
+      }
+      inst->alu[i].dst.saturate = saturate;
+
+      if (src->File == TGSI_FILE_INPUT) {
+         inst->mfu.var[i].op = FP_VAR_OP_FP20;
+         inst->mfu.var[i].tram_row = src->Index;
+         inst->alu[i].src[0] = fp_alu_src_row(i);
+      } else {
+         inst->alu[i].src[0] = fp_alu_src_reg(src->Index + i);
+      }
+
+      inst->alu[i].src[1] = fp_alu_src_one();
+      inst->alu[i].src[2] = fp_alu_src_zero();
+      inst->alu[i].src[3] = fp_alu_src_one();
+   }
+
+   if (dst->File == TGSI_FILE_OUTPUT) {
+      inst->dw.enable = 1;
+      inst->dw.index = 1; // hard-coded for now
+      inst->dw.stencil_write = 0;
+      inst->dw.src_regs = FP_DW_REGS_R2_R3; // hard-coded for now
+   }
+};
+
+static struct fp_instr
+tgsi_to_fp(const struct tgsi_full_instruction *inst)
+{
+   bool saturate = inst->Instruction.Saturate != 0;
+
+   struct fp_instr ret = { };
+   switch (inst->Instruction.Opcode) {
+   case TGSI_OPCODE_MOV:
+      fp_alu_MOV(&ret, &inst->Dst[0].Register, saturate,
+                       &inst->Src[0].Register);
+      return ret;
+
+   default:
+      unreachable("unsupported TGSI-opcode!");
+   }
+}
+
+void
+tegra_tgsi_to_fp(struct tegra_fp_shader *fp, struct tgsi_parse_context *tgsi)
+{
+   fp->num_instructions = 0;
+
+   while (!tgsi_parse_end_of_tokens(tgsi)) {
+      tgsi_parse_token(tgsi);
+      switch (tgsi->FullToken.Token.Type) {
+      case TGSI_TOKEN_TYPE_INSTRUCTION:
+         if (tgsi->FullToken.FullInstruction.Instruction.Opcode != TGSI_OPCODE_END)
+            fp->instructions[fp->num_instructions++] = tgsi_to_fp(&tgsi->FullToken.FullInstruction);
+         break;
+      }
+   }
+
+   /*
+    * HACK: insert barycentric interpolation setup
+    * This will overwrite instructions in some cases, need proper scheduler
+    * to fix properly
+    */
+
+    fp->instructions[0].mfu.sfu.op = FP_SFU_OP_RCP;
+    fp->instructions[0].mfu.sfu.reg = 4;
+    fp->instructions[0].mfu.mul[0].dst = FP_MFU_MUL_DST_BARYCENTRIC_WEIGHT;
+    fp->instructions[0].mfu.mul[0].src[0] = FP_MFU_MUL_SRC_SFU_RESULT;
+    fp->instructions[0].mfu.mul[0].src[1] = FP_MFU_MUL_SRC_BARYCENTRIC_COEF_0;
+
+    fp->instructions[0].mfu.mul[1].dst = FP_MFU_MUL_DST_BARYCENTRIC_WEIGHT;
+    fp->instructions[0].mfu.mul[1].src[0] = FP_MFU_MUL_SRC_SFU_RESULT;
+    fp->instructions[0].mfu.mul[1].src[1] = FP_MFU_MUL_SRC_BARYCENTRIC_COEF_1;
 }

@@ -88,6 +88,7 @@ int main(int argc, char **argv)
       }
 
       struct tegra_vpe_shader vpe;
+      struct tegra_fp_shader fp;
       switch (parser.FullHeader.Processor.Processor) {
       case PIPE_SHADER_VERTEX:
          tegra_tgsi_to_vpe(&vpe, &parser);
@@ -100,6 +101,29 @@ int main(int argc, char **argv)
             for (int j = 0; j < 4; ++j)
                printf("\t%08x\n", words[j]);
          }
+         break;
+
+      case PIPE_SHADER_FRAGMENT:
+         tegra_tgsi_to_fp(&fp, &parser);
+         printf("alu-words(%d):\n", fp.num_instructions * 4 * 2);
+         for (int i = 0; i < fp.num_instructions; ++i) {
+            for (int j = 0; j < 4; ++j) {
+               uint32_t words[2];
+               tegra_fp_pack_alu(words, fp.instructions[i].alu + j);
+               for (int k = 0; k < 2; ++k)
+                  printf("\t%08x\n", words[k]);
+            }
+         }
+         printf("mfu-words(%d):\n", fp.num_instructions * 2);
+         for (int i = 0; i < fp.num_instructions; ++i) {
+            uint32_t words[2];
+            tegra_fp_pack_mfu(words, &fp.instructions[i].mfu);
+            for (int k = 0; k < 2; ++k)
+               printf("\t%08x\n", words[k]);
+         }
+         printf("dw-words(%d):\n", fp.num_instructions);
+         for (int i = 0; i < fp.num_instructions; ++i)
+            printf("\t%08x\n", tegra_fp_pack_dw(&fp.instructions[i].dw));
          break;
 
       default:
