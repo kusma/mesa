@@ -14,6 +14,15 @@ vpe_write_mask(unsigned input)
           (((input >> 3) & 1) << 0);
 }
 
+static unsigned
+vpe_swizzle(enum vpe_swz swizzle[4])
+{
+   return (swizzle[0] << 6) |
+          (swizzle[1] << 4) |
+          (swizzle[2] << 2) |
+          (swizzle[3] << 0);
+}
+
 void
 tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
 {
@@ -31,34 +40,22 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
          unsigned scalar_op_write_mask : 4;                 //  17 .. 20
          unsigned rC_type : 2;                              //  21 .. 22
          unsigned rC_index : 6;                             //  23 .. 28
-         unsigned rC_swizzle_w : 2;                         //  29 .. 30
-         unsigned rC_swizzle_z : 2;                         //  31 .. 32
-         unsigned rC_swizzle_y : 2;                         //  33 .. 34
-         unsigned rC_swizzle_x : 2;                         //  35 .. 36
+         unsigned rC_swizzle : 8;                           //  29 .. 36
          unsigned rC_negate : 1;                            //  37
          unsigned rB_type : 2;                              //  38 .. 39
          unsigned rB_index : 6;                             //  40 .. 45
-         unsigned rB_swizzle_w : 2;                         //  46 .. 47
-         unsigned rB_swizzle_z : 2;                         //  48 .. 49
-         unsigned rB_swizzle_y : 2;                         //  50 .. 51
-         unsigned rB_swizzle_x : 2;                         //  52 .. 53
+         unsigned rB_swizzle : 8;                           //  46 .. 53
          unsigned rB_negate : 1;                            //  54
          unsigned rA_type : 2;                              //  55 .. 56
          unsigned rA_index : 6;                             //  57 .. 62
-         unsigned rA_swizzle_w : 2;                         //  63 .. 64
-         unsigned rA_swizzle_z : 2;                         //  65 .. 66
-         unsigned rA_swizzle_y : 2;                         //  67 .. 68
-         unsigned rA_swizzle_x : 2;                         //  69 .. 70
+         unsigned rA_swizzle : 8;                           //  63 .. 70
          unsigned rA_negate : 1;                            //  71
          unsigned attribute_fetch_index : 4;                //  72 .. 75
          unsigned uniform_fetch_index : 10;                 //  76 .. 85
          unsigned vector_opcode : 5;                        //  86 .. 90
          unsigned scalar_opcode : 5;                        //  91 .. 95
          unsigned address_register_select : 2;              //  96 .. 97
-         unsigned predicate_swizzle_w : 2;                  //  98 .. 99
-         unsigned predicate_swizzle_z : 2;                  // 100 .. 101
-         unsigned predicate_swizzle_y : 2;                  // 102 .. 103
-         unsigned predicate_swizzle_x : 2;                  // 104 .. 105
+         unsigned predicate_swizzle : 8;                    //  98 .. 105
          unsigned predicate_lt : 1;                         // 106
          unsigned predicate_eq : 1;                         // 107
          unsigned predicate_gt : 1;                         // 108
@@ -84,10 +81,7 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
       .predicate_eq = 1,
       .predicate_gt = 1,
 
-      .predicate_swizzle_x = VPE_SWZ_X,
-      .predicate_swizzle_y = VPE_SWZ_Y,
-      .predicate_swizzle_z = VPE_SWZ_Z,
-      .predicate_swizzle_w = VPE_SWZ_W,
+      .predicate_swizzle = (0 << 6) | (1 << 4) | (2 << 2) | 3,
    };
 
    /* find the attribute/uniform fetch-values, and zero out the index
@@ -184,38 +178,26 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
 
    tmp.rA_type = instr.vec.src[0].file;
    tmp.rA_index = instr.vec.src[0].index;
-   tmp.rA_swizzle_x = instr.vec.src[0].swizzle[0];
-   tmp.rA_swizzle_y = instr.vec.src[0].swizzle[1];
-   tmp.rA_swizzle_z = instr.vec.src[0].swizzle[2];
-   tmp.rA_swizzle_w = instr.vec.src[0].swizzle[3];
+   tmp.rA_swizzle = vpe_swizzle(instr.vec.src[0].swizzle);
    tmp.rA_negate = instr.vec.src[0].negate;
    tmp.rA_absolute = instr.vec.src[0].absolute;
 
    tmp.rB_type = instr.vec.src[1].file;
    tmp.rB_index = instr.vec.src[1].index;
-   tmp.rB_swizzle_x = instr.vec.src[1].swizzle[0];
-   tmp.rB_swizzle_y = instr.vec.src[1].swizzle[1];
-   tmp.rB_swizzle_z = instr.vec.src[1].swizzle[2];
-   tmp.rB_swizzle_w = instr.vec.src[1].swizzle[3];
+   tmp.rB_swizzle = vpe_swizzle(instr.vec.src[1].swizzle);
    tmp.rB_negate = instr.vec.src[1].negate;
    tmp.rB_absolute = instr.vec.src[1].absolute;
 
    if (instr.vec.src[2].file != VPE_SRC_FILE_UNDEF) {
       tmp.rC_type = instr.vec.src[2].file;
       tmp.rC_index = instr.vec.src[2].index;
-      tmp.rC_swizzle_x = instr.vec.src[2].swizzle[0];
-      tmp.rC_swizzle_y = instr.vec.src[2].swizzle[1];
-      tmp.rC_swizzle_z = instr.vec.src[2].swizzle[2];
-      tmp.rC_swizzle_w = instr.vec.src[2].swizzle[3];
+      tmp.rC_swizzle = vpe_swizzle(instr.vec.src[2].swizzle);
       tmp.rC_negate = instr.vec.src[2].negate;
       tmp.rC_absolute = instr.vec.src[2].absolute;
    } else if (instr.scalar.src.file != VPE_SRC_FILE_UNDEF) {
       tmp.rC_type = instr.scalar.src.file;
       tmp.rC_index = instr.scalar.src.index;
-      tmp.rC_swizzle_x = instr.scalar.src.swizzle[0];
-      tmp.rC_swizzle_y = instr.scalar.src.swizzle[1];
-      tmp.rC_swizzle_z = instr.scalar.src.swizzle[2];
-      tmp.rC_swizzle_w = instr.scalar.src.swizzle[3];
+      tmp.rC_swizzle = vpe_swizzle(instr.scalar.src.swizzle);
       tmp.rC_negate = instr.scalar.src.negate;
       tmp.rC_absolute = instr.scalar.src.absolute;
    }
