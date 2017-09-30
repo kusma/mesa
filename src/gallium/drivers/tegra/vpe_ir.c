@@ -5,6 +5,15 @@
 
 #include "vpe_ir.h"
 
+static unsigned
+vpe_write_mask(unsigned input)
+{
+   return (((input >> 0) & 1) << 3) |
+          (((input >> 1) & 1) << 2) |
+          (((input >> 2) & 1) << 1) |
+          (((input >> 3) & 1) << 0);
+}
+
 void
 tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
 {
@@ -18,14 +27,8 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
          unsigned constant_relative_addressing_enable : 1;  //   1
          unsigned export_write_index : 5;                   //   2 .. 6
          unsigned scalar_rD_index : 6;                      //   7 .. 12
-         unsigned vector_op_write_w_enable : 1;             //  13
-         unsigned vector_op_write_z_enable : 1;             //  14
-         unsigned vector_op_write_y_enable : 1;             //  15
-         unsigned vector_op_write_x_enable : 1;             //  16
-         unsigned scalar_op_write_w_enable : 1;             //  17
-         unsigned scalar_op_write_z_enable : 1;             //  18
-         unsigned scalar_op_write_y_enable : 1;             //  19
-         unsigned scalar_op_write_x_enable : 1;             //  20
+         unsigned vector_op_write_mask : 4;                 //  13 .. 16
+         unsigned scalar_op_write_mask : 4;                 //  17 .. 20
          unsigned rC_type : 2;                              //  21 .. 22
          unsigned rC_index : 6;                             //  23 .. 28
          unsigned rC_swizzle_w : 2;                         //  29 .. 30
@@ -155,10 +158,7 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
    default:
       unreachable("illegal enum vpe_dst_file value");
    }
-   tmp.vector_op_write_x_enable = (instr.vec.dst.write_mask >> 0) & 1;
-   tmp.vector_op_write_y_enable = (instr.vec.dst.write_mask >> 1) & 1;
-   tmp.vector_op_write_z_enable = (instr.vec.dst.write_mask >> 2) & 1;
-   tmp.vector_op_write_w_enable = (instr.vec.dst.write_mask >> 3) & 1;
+   tmp.vector_op_write_mask = vpe_write_mask(instr.vec.dst.write_mask);
 
    tmp.scalar_opcode = instr.scalar.op;
    switch (instr.scalar.dst.file) {
@@ -180,10 +180,7 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
    default:
       unreachable("illegal enum vpe_dst_file value");
    }
-   tmp.scalar_op_write_x_enable = (instr.scalar.dst.write_mask >> 0) & 1;
-   tmp.scalar_op_write_y_enable = (instr.scalar.dst.write_mask >> 1) & 1;
-   tmp.scalar_op_write_z_enable = (instr.scalar.dst.write_mask >> 2) & 1;
-   tmp.scalar_op_write_w_enable = (instr.scalar.dst.write_mask >> 3) & 1;
+   tmp.scalar_op_write_mask = vpe_write_mask(instr.scalar.dst.write_mask);
 
    tmp.rA_type = instr.vec.src[0].file;
    tmp.rA_index = instr.vec.src[0].index;
