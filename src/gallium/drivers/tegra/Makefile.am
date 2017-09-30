@@ -36,8 +36,7 @@ libtegra_la_SOURCES = \
 	tegra_surface.c \
 	tegra_surface.h \
 	vpe_ir.c \
-	vpe_ir.h \
-	vpe_vliw.h
+	vpe_ir.h
 
 noinst_PROGRAMS = tegra_compiler
 
