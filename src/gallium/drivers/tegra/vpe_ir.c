@@ -75,12 +75,7 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
          unsigned bit127 : 1;                               // 127
       };
 
-      struct __attribute__((packed)) {
-         uint32_t part0;
-         uint32_t part1;
-         uint32_t part2;
-         uint32_t part3;
-      };
+      uint32_t words[4];
    } tmp = {
       .predicate_lt = 1,
       .predicate_eq = 1,
@@ -231,8 +226,6 @@ tegra_vpe_pack(uint32_t *dst, struct vpe_instr instr, bool end_of_program)
    tmp.end_of_program = end_of_program;
 
    /* copy packed instruction into destination */
-   dst[0] = tmp.part3;
-   dst[1] = tmp.part2;
-   dst[2] = tmp.part1;
-   dst[3] = tmp.part0;
+   for (int i = 0; i < 4; ++i)
+      dst[i] = tmp.words[3 - i];
 }
