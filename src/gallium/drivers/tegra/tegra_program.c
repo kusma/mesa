@@ -88,7 +88,12 @@ tegra_create_fs_state(struct pipe_context *pcontext,
       fprintf(stderr, "\n");
    }
 
-   /* TODO: generate code! */
+   struct tgsi_parse_context parser;
+   unsigned ok = tgsi_parse_init(&parser, template->tokens);
+   assert(ok == TGSI_PARSE_OK);
+
+   struct tegra_fp_shader fp;
+   tegra_tgsi_to_fp(&fp, &parser);
 
    struct util_dynarray buf;
    util_dynarray_init(&buf, NULL);
@@ -117,9 +122,14 @@ tegra_create_fs_state(struct pipe_context *pcontext,
    PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_SCHED, 1));
    PUSH(0x00000001);
 
-   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_INST, 2));
-   PUSH(0x104e51ba);
-   PUSH(0x00408102);
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_MFU_INST,
+        fp.num_instructions * 2));
+   for (int i = 0; i < fp.num_instructions; ++i) {
+      uint32_t words[2];
+      tegra_fp_pack_mfu(words, &fp.instructions[i].mfu);
+      PUSH(words[0]);
+      PUSH(words[1]);
+   }
 
    PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_TEX_INST, 1));
    PUSH(0x00000000);
@@ -127,21 +137,24 @@ tegra_create_fs_state(struct pipe_context *pcontext,
    PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_SCHED,1));
    PUSH(0x00000001);
 
-   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST, 8));
-   PUSH(0x0001c0c0);
-   PUSH(0x3f41f231);
-   PUSH(0x0001a040);
-   PUSH(0x3f41f231);
-   PUSH(0x00014000);
-   PUSH(0x3f41f231);
-   PUSH(0x00012080);
-   PUSH(0x3f41f231);
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST,
+        fp.num_instructions * 4 * 2));
+   for (int i = 0; i < fp.num_instructions; ++i) {
+      for (int j = 0; j < 4; ++j) {
+         uint32_t words[2];
+         tegra_fp_pack_alu(words, fp.instructions[i].alu + j);
+         PUSH(words[0]);
+         PUSH(words[1]);
+      }
+   }
 
    PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_ALU_INST_COMPLEMENT, 1));
    PUSH(0x00000000);
 
-   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_DW_INST, 1));
-   PUSH(0x00028005);
+   PUSH(host1x_opcode_nonincr(TGR3D_FP_UPLOAD_DW_INST,
+        fp.num_instructions));
+   for (int i = 0; i < fp.num_instructions; ++i)
+      PUSH(tegra_fp_pack_dw(&fp.instructions[i].dw));
 
    PUSH(host1x_opcode_imm(TGR3D_TRAM_SETUP, 0x0140));
 #undef PUSH
