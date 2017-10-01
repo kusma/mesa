@@ -131,13 +131,6 @@ static const struct u_resource_vtbl tegra_resource_vtbl = {
    .transfer_unmap = tegra_resource_transfer_unmap,
 };
 
-static boolean
-tegra_screen_can_create_resource(struct pipe_screen *pscreen,
-                                 const struct pipe_resource *template)
-{
-   return TRUE;
-}
-
 int
 tegra_pixel_format(enum pipe_format format)
 {
@@ -266,7 +259,6 @@ tegra_screen_resource_from_handle(struct pipe_screen *pscreen,
 void
 tegra_screen_resource_init(struct pipe_screen *pscreen)
 {
-   pscreen->can_create_resource = tegra_screen_can_create_resource;
    pscreen->resource_create = tegra_screen_resource_create;
    pscreen->resource_from_handle = tegra_screen_resource_from_handle;
    pscreen->resource_get_handle = u_resource_get_handle_vtbl;
