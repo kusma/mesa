@@ -566,6 +566,8 @@ emit_program(struct tegra_context *context)
       0x00000008,
       0x0000fedc
    };
+   if (context->rast->flatshade)
+      linker_insts[1] |= 0xf << 16;
    tegra_stream_push(stream, host1x_opcode_incr(TGR3D_LINKER_INSTRUCTION(0), ARRAY_SIZE(linker_insts)));
    tegra_stream_push_words(stream, linker_insts, ARRAY_SIZE(linker_insts), 0);
 }
