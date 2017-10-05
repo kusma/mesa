@@ -383,9 +383,11 @@ fp_alu_MOV(struct fp_instr *inst, const struct tgsi_dst_register *dst,
       inst->alu[i].dst.index = 2 + dst->Index; // +2 to match hard-coded store shader for now
       if (dst->File == TGSI_FILE_OUTPUT) {
          // fixed10
-         inst->alu[i].dst.index += i / 2;
-         inst->alu[i].dst.write_low_sub_reg = (i % 2) == 0;
-         inst->alu[i].dst.write_high_sub_reg = (i % 2) != 0;
+         // swizzle RGBA -> BGRA
+         int o = i < 3 ? (2 - i) : 3;
+         inst->alu[i].dst.index += o / 2;
+         inst->alu[i].dst.write_low_sub_reg = (o % 2) == 0;
+         inst->alu[i].dst.write_high_sub_reg = (o % 2) != 0;
       } else {
          inst->alu[i].dst.index += i;
       }
