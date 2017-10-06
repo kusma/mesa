@@ -6,6 +6,10 @@
 
 struct tegra_context;
 
+struct tegra_rasterizer_state {
+   struct pipe_rasterizer_state base;
+};
+
 struct tegra_zsa_state {
    struct pipe_depth_stencil_alpha_state base;
    uint32_t commands[2];
