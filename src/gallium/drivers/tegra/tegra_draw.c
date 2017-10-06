@@ -59,7 +59,7 @@ tegra_draw_vbo(struct pipe_context *pcontext,
       if (!u_trim_pipe_prim(info->mode, (unsigned *)&info->count))
          return;
 
-      util_primconvert_save_rasterizer_state(context->primconvert, context->rast);
+      util_primconvert_save_rasterizer_state(context->primconvert, &context->rast->base);
       util_primconvert_draw_vbo(context->primconvert, info);
       return;
    }
@@ -95,7 +95,7 @@ tegra_draw_vbo(struct pipe_context *pcontext,
    /* draw params */
    assert(info->index_size >= 0 && info->index_size <= 2);
    value  = TGR3D_VAL(DRAW_PARAMS, INDEX_MODE, info->index_size);
-   value |= TGR3D_VAL(DRAW_PARAMS, PROVOKING_VERTEX, !context->rast->flatshade_first);
+   value |= TGR3D_VAL(DRAW_PARAMS, PROVOKING_VERTEX, !context->rast->base.flatshade_first);
    /* TODO: provoking vertex (comes from pipe_rasterizer_state) */
    value |= TGR3D_VAL(DRAW_PARAMS, PRIMITIVE_TYPE, tegra_primitive_type(info->mode));
    value |= TGR3D_VAL(DRAW_PARAMS, FIRST, info->start);

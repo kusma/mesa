@@ -259,11 +259,11 @@ static void *
 tegra_create_rasterizer_state(struct pipe_context *pcontext,
                               const struct pipe_rasterizer_state *template)
 {
-   struct pipe_rasterizer_state *so = CALLOC_STRUCT(pipe_rasterizer_state);
+   struct tegra_rasterizer_state *so = CALLOC_STRUCT(tegra_rasterizer_state);
    if (!so)
       return NULL;
 
-   *so = *template;
+   so->base = *template;
 
    return so;
 }
@@ -566,7 +566,7 @@ emit_program(struct tegra_context *context)
       0x00000008,
       0x0000fedc
    };
-   if (context->rast->flatshade)
+   if (context->rast->base.flatshade)
       linker_insts[1] |= 0xf << 16;
    tegra_stream_push(stream, host1x_opcode_incr(TGR3D_LINKER_INSTRUCTION(0), ARRAY_SIZE(linker_insts)));
    tegra_stream_push_words(stream, linker_insts, ARRAY_SIZE(linker_insts), 0);
