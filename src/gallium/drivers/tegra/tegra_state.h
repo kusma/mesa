@@ -8,6 +8,7 @@ struct tegra_context;
 
 struct tegra_rasterizer_state {
    struct pipe_rasterizer_state base;
+   uint32_t draw_params;
 };
 
 struct tegra_zsa_state {

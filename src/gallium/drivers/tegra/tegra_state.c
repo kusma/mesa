@@ -265,6 +265,8 @@ tegra_create_rasterizer_state(struct pipe_context *pcontext,
 
    so->base = *template;
 
+   so->draw_params = TGR3D_VAL(DRAW_PARAMS, PROVOKING_VERTEX, !template->flatshade_first);
+
    return so;
 }
 
