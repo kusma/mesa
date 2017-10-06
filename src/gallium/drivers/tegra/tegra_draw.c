@@ -59,7 +59,7 @@ tegra_draw_vbo(struct pipe_context *pcontext,
       if (!u_trim_pipe_prim(info->mode, (unsigned *)&info->count))
          return;
 
-      // util_primconvert_save_rasterizer_state(context->primconvert, &context->rasterizer->base);
+      util_primconvert_save_rasterizer_state(context->primconvert, context->rast);
       util_primconvert_draw_vbo(context->primconvert, info);
       return;
    }
