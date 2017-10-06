@@ -271,7 +271,7 @@ tegra_create_rasterizer_state(struct pipe_context *pcontext,
 static void
 tegra_bind_rasterizer_state(struct pipe_context *pcontext, void *so)
 {
-   unimplemented();
+   tegra_context(pcontext)->rast = so;
 }
 
 static void

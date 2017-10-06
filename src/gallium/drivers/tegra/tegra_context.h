@@ -40,6 +40,7 @@ struct tegra_context {
    struct pipe_constant_buffer constant_buffer[PIPE_SHADER_TYPES];
 
    struct tegra_zsa_state *zsa;
+   struct pipe_rasterizer_state *rast;
 
    struct tegra_shader_state *vshader;
    struct tegra_shader_state *fshader;
