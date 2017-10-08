@@ -38,6 +38,12 @@ tegra_screen_get_name(struct pipe_screen *pscreen)
 static const char *
 tegra_screen_get_vendor(struct pipe_screen *pscreen)
 {
+   return "Grate";
+}
+
+static const char *
+tegra_screen_get_device_vendor(struct pipe_screen *pscreen)
+{
    return "NVIDIA";
 }
 
@@ -578,6 +584,7 @@ tegra_screen_create(struct drm_tegra *drm)
    screen->base.destroy = tegra_screen_destroy;
    screen->base.get_name = tegra_screen_get_name;
    screen->base.get_vendor = tegra_screen_get_vendor;
+   screen->base.get_device_vendor = tegra_screen_get_device_vendor;
    screen->base.get_param = tegra_screen_get_param;
    screen->base.get_paramf = tegra_screen_get_paramf;
    screen->base.get_shader_param = tegra_screen_get_shader_param;
