@@ -551,6 +551,13 @@ emit_shader(struct tegra_stream *stream, struct tegra_shader_state *shader)
    tegra_stream_push_words(stream, shader->commands, shader->num_commands, 0);
 }
 
+#define LINK_SRC(index) ((index) << 3)
+#define LINK_DST(index, comp, type) (((comp) | (type) << 2) << ((index) * 4))
+#define LINK_DST_NONE      0
+#define LINK_DST_FX10_LOW  1
+#define LINK_DST_FX10_HIGH 2
+#define LINK_DST_FP20      3
+
 static void
 emit_program(struct tegra_context *context)
 {
@@ -564,9 +571,15 @@ emit_program(struct tegra_context *context)
    tegra_stream_push(stream, 0xb8e00000);
 
    /* depends on linking */
+   uint32_t link_src = LINK_SRC(1);
+   uint32_t link_dst = LINK_DST(0, 0, LINK_DST_FP20);
+   link_dst |= LINK_DST(1, 1, LINK_DST_FP20);
+   link_dst |= LINK_DST(2, 2, LINK_DST_FP20);
+   link_dst |= LINK_DST(3, 3, LINK_DST_FP20);
+
    uint32_t linker_insts[] = {
-      0x00000008,
-      0x0000fedc
+      link_src,
+      link_dst
    };
    if (context->rast->base.flatshade)
       linker_insts[1] |= 0xf << 16;
