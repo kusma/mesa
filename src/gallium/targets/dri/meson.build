@@ -87,6 +87,11 @@ if with_gallium_softpipe
     gallium_dri_link_with += libllvmpipe
   endif
 endif
+if with_gallium_tegra
+  gallium_dri_c_args += '-DGALLIUM_TEGRA'
+  gallium_dri_link_with += [libtegra, libtegrawinsys]
+  gallium_dri_drivers += 'tegra_dri.so'
+endif
 if with_gallium_vc4
   gallium_dri_c_args += '-DGALLIUM_VC4'
   gallium_dri_link_with += [libvc4, libvc4winsys]
