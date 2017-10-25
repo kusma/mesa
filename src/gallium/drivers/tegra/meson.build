@@ -44,6 +44,8 @@ files_libtegra = files(
   'tegra_stream.h',
   'tegra_surface.c',
   'tegra_surface.h',
+  'tegra_texture.c',
+  'tegra_texture.h',
   'vpe_ir.c',
   'vpe_ir.h'
 )
