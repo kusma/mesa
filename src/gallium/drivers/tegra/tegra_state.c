@@ -566,24 +566,35 @@ emit_program(struct tegra_context *context)
    emit_shader(stream, context->vshader);
    emit_shader(stream, context->fshader);
 
-   /* depends on linking and cull-face */
-   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_CULL_FACE_LINKER_SETUP, 1));
-   tegra_stream_push(stream, 0xb8e00000);
+   uint32_t cull_face_linker_setup = TGR3D_VAL(CULL_FACE_LINKER_SETUP,
+                                               UNK_18_31, 0x2e38);
+
+   /* depends on cull-face */
+   cull_face_linker_setup |= TGR3D_BOOL(CULL_FACE_LINKER_SETUP,
+                                        FRONT_CW, 0);
+   cull_face_linker_setup |= TGR3D_VAL(CULL_FACE_LINKER_SETUP,
+                                       CULL_FACE, TGR3D_CULL_FACE_NONE);
+
+   /* depends on linking */
+   cull_face_linker_setup |= TGR3D_VAL(CULL_FACE_LINKER_SETUP,
+                                       LINKER_INST_COUNT, 1 - 1);
 
    /* depends on linking */
    uint32_t link_src = LINK_SRC(1);
-   uint32_t link_dst = LINK_DST(0, 0, LINK_DST_FP20);
-   link_dst |= LINK_DST(1, 1, LINK_DST_FP20);
-   link_dst |= LINK_DST(2, 2, LINK_DST_FP20);
-   link_dst |= LINK_DST(3, 3, LINK_DST_FP20);
+   uint32_t link_dst = 0;
+   for (int i = 0; i < 4; ++i)
+	   link_dst |= LINK_DST(i, i, LINK_DST_FP20);
+
+   if (context->rast->base.flatshade)
+      link_dst |= 0xf << 16;
 
    uint32_t linker_insts[] = {
+      host1x_opcode_incr(TGR3D_CULL_FACE_LINKER_SETUP, 1),
+      cull_face_linker_setup,
+      host1x_opcode_incr(TGR3D_LINKER_INSTRUCTION(0), 2),
       link_src,
       link_dst
    };
-   if (context->rast->base.flatshade)
-      linker_insts[1] |= 0xf << 16;
-   tegra_stream_push(stream, host1x_opcode_incr(TGR3D_LINKER_INSTRUCTION(0), ARRAY_SIZE(linker_insts)));
    tegra_stream_push_words(stream, linker_insts, ARRAY_SIZE(linker_insts), 0);
 }
 
