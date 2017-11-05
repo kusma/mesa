@@ -13,9 +13,14 @@ struct tegra_shader_blob {
    int num_commands;
 };
 
-struct tegra_shader_state {
+struct tegra_vertex_shader_state {
    struct pipe_shader_state base;
+   struct tegra_shader_blob blob;
+};
 
+struct tegra_fragment_shader_state {
+   struct pipe_shader_state base;
+   struct tegra_shader_blob blob;
 };
 
 void

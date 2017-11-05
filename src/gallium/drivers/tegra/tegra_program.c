@@ -19,7 +19,9 @@ static void *
 tegra_create_vs_state(struct pipe_context *pcontext,
                       const struct pipe_shader_state *template)
 {
-   struct tegra_shader_state *so = CALLOC_STRUCT(tegra_shader_state);
+   struct tegra_vertex_shader_state *so =
+      CALLOC_STRUCT(tegra_vertex_shader_state);
+
    if (!so)
       return NULL;
 
@@ -76,7 +78,9 @@ static void *
 tegra_create_fs_state(struct pipe_context *pcontext,
                       const struct pipe_shader_state *template)
 {
-   struct tegra_shader_state *so = CALLOC_STRUCT(tegra_shader_state);
+   struct tegra_fragment_shader_state *so =
+      CALLOC_STRUCT(tegra_fragment_shader_state);
+
    if (!so)
       return NULL;
 
