@@ -55,8 +55,8 @@ tegra_create_vs_state(struct pipe_context *pcontext,
       tegra_vpe_pack(commands + 2 + i * 4, vpe.instructions[i], end_of_program);
    }
 
-   so->commands = commands;
-   so->num_commands = num_commands;
+   so->blob.commands = commands;
+   so->blob.num_commands = num_commands;
    return so;
 }
 
@@ -160,8 +160,8 @@ tegra_create_fs_state(struct pipe_context *pcontext,
 #undef PUSH
    util_dynarray_trim(&buf);
 
-   so->num_commands = buf.size / sizeof(uint32_t);
-   so->commands = buf.data;
+   so->blob.num_commands = buf.size / sizeof(uint32_t);
+   so->blob.commands = buf.data;
    return so;
 }
 

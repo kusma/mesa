@@ -546,9 +546,9 @@ emit_vs_uniforms(struct tegra_context *context)
 }
 
 static void
-emit_shader(struct tegra_stream *stream, struct tegra_shader_state *shader)
+emit_shader(struct tegra_stream *stream, struct tegra_shader_blob *blob)
 {
-   tegra_stream_push_words(stream, shader->commands, shader->num_commands, 0);
+   tegra_stream_push_words(stream, blob->commands, blob->num_commands, 0);
 }
 
 #define LINK_SRC(index) ((index) << 3)
@@ -563,8 +563,8 @@ emit_program(struct tegra_context *context)
 {
    struct tegra_stream *stream = &context->gr3d->stream;
 
-   emit_shader(stream, context->vshader);
-   emit_shader(stream, context->fshader);
+   emit_shader(stream, &context->vshader->blob);
+   emit_shader(stream, &context->fshader->blob);
 
    uint32_t cull_face_linker_setup = TGR3D_VAL(CULL_FACE_LINKER_SETUP,
                                                UNK_18_31, 0x2e38);
