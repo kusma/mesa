@@ -174,7 +174,7 @@ emit_tgsi_input(struct tegra_fp_shader *fp, const struct tgsi_full_declaration *
 {
    assert(decl->Range.First == decl->Range.Last);
 
-   uint32_t src = LINK_SRC(1);
+   uint32_t src = LINK_SRC(1 + decl->Range.First);
    uint32_t dst = 0;
    for (int i = 0; i < 4; ++i)
       dst |= LINK_DST(i, i, LINK_DST_FP20);
