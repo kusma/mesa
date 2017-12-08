@@ -182,8 +182,10 @@ emit_tgsi_input(struct tegra_fp_shader *fp, const struct tgsi_full_declaration *
    fp->info.inputs[fp->info.num_inputs].src = src;
    fp->info.inputs[fp->info.num_inputs].dst = dst;
 
-   if (decl->Declaration.Semantic == TGSI_SEMANTIC_COLOR)
+   if (decl->Declaration.Semantic == TGSI_SEMANTIC_COLOR) {
+      assert(fp->info.color_input < 0);
       fp->info.color_input = fp->info.num_inputs;
+   }
 
    fp->info.num_inputs++;
 }
