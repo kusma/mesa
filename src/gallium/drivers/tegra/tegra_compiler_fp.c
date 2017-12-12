@@ -201,7 +201,7 @@ emit_tgsi_declaration(struct tegra_fp_shader *fp, const struct tgsi_full_declara
 }
 
 void
-tegra_tgsi_to_fp(struct tegra_fp_shader *fp, struct tgsi_parse_context *tgsi)
+tegra_tgsi_to_fp(struct tegra_fp_shader *fp, const struct tgsi_token *tokens)
 {
    list_inithead(&fp->fp_instructions);
    list_inithead(&fp->alu_instructions);
@@ -211,16 +211,20 @@ tegra_tgsi_to_fp(struct tegra_fp_shader *fp, struct tgsi_parse_context *tgsi)
    fp->info.color_input = -1;
    fp->info.max_tram_row = 1;
 
-   while (!tgsi_parse_end_of_tokens(tgsi)) {
-      tgsi_parse_token(tgsi);
-      switch (tgsi->FullToken.Token.Type) {
+   struct tgsi_parse_context parser;
+   int ret = tgsi_parse_init(&parser, tokens);
+   assert(ret == TGSI_PARSE_OK);
+
+   while (!tgsi_parse_end_of_tokens(&parser)) {
+      tgsi_parse_token(&parser);
+      switch (parser.FullToken.Token.Type) {
       case TGSI_TOKEN_TYPE_DECLARATION:
-         emit_tgsi_declaration(fp, &tgsi->FullToken.FullDeclaration);
+         emit_tgsi_declaration(fp, &parser.FullToken.FullDeclaration);
          break;
 
       case TGSI_TOKEN_TYPE_INSTRUCTION:
-         if (tgsi->FullToken.FullInstruction.Instruction.Opcode != TGSI_OPCODE_END)
-            emit_tgsi_instr(fp, &tgsi->FullToken.FullInstruction);
+         if (parser.FullToken.FullInstruction.Instruction.Opcode != TGSI_OPCODE_END)
+            emit_tgsi_instr(fp, &parser.FullToken.FullInstruction);
          break;
       }
    }

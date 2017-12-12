@@ -36,12 +36,8 @@ tegra_create_vs_state(struct pipe_context *pcontext,
       fprintf(stderr, "\n");
    }
 
-   struct tgsi_parse_context parser;
-   unsigned ok = tgsi_parse_init(&parser, template->tokens);
-   assert(ok == TGSI_PARSE_OK);
-
    struct tegra_vpe_shader vpe;
-   tegra_tgsi_to_vpe(&vpe, &parser);
+   tegra_tgsi_to_vpe(&vpe, template->tokens);
 
    int num_instructions = list_length(&vpe.instructions);
    assert(num_instructions < 256);
@@ -101,12 +97,8 @@ tegra_create_fs_state(struct pipe_context *pcontext,
       fprintf(stderr, "\n");
    }
 
-   struct tgsi_parse_context parser;
-   unsigned ok = tgsi_parse_init(&parser, template->tokens);
-   assert(ok == TGSI_PARSE_OK);
-
    struct tegra_fp_shader fp;
-   tegra_tgsi_to_fp(&fp, &parser);
+   tegra_tgsi_to_fp(&fp, template->tokens);
 
    struct util_dynarray buf;
    util_dynarray_init(&buf, NULL);

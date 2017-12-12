@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-struct tgsi_parse_context;
+struct tgsi_token;
 
 struct tegra_vpe_shader {
    struct list_head instructions;
@@ -30,9 +30,9 @@ struct tegra_fp_shader {
 };
 
 void
-tegra_tgsi_to_vpe(struct tegra_vpe_shader *vpe, struct tgsi_parse_context *tgsi);
+tegra_tgsi_to_vpe(struct tegra_vpe_shader *vpe, const struct tgsi_token *tokens);
 
 void
-tegra_tgsi_to_fp(struct tegra_fp_shader *fp, struct tgsi_parse_context *tgsi);
+tegra_tgsi_to_fp(struct tegra_fp_shader *fp, const struct tgsi_token *tokens);
 
 #endif

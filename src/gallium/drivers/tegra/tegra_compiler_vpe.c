@@ -317,17 +317,21 @@ tgsi_to_vpe(struct tegra_vpe_shader *vpe, const struct tgsi_full_instruction *in
 }
 
 void
-tegra_tgsi_to_vpe(struct tegra_vpe_shader *vpe, struct tgsi_parse_context *tgsi)
+tegra_tgsi_to_vpe(struct tegra_vpe_shader *vpe, const struct tgsi_token *tokens)
 {
    list_inithead(&vpe->instructions);
    vpe->output_mask = 0;
 
-   while (!tgsi_parse_end_of_tokens(tgsi)) {
-      tgsi_parse_token(tgsi);
-      switch (tgsi->FullToken.Token.Type) {
+   struct tgsi_parse_context parser;
+   int ret = tgsi_parse_init(&parser, tokens);
+   assert(ret == TGSI_PARSE_OK);
+
+   while (!tgsi_parse_end_of_tokens(&parser)) {
+      tgsi_parse_token(&parser);
+      switch (parser.FullToken.Token.Type) {
       case TGSI_TOKEN_TYPE_INSTRUCTION:
-         if (tgsi->FullToken.FullInstruction.Instruction.Opcode != TGSI_OPCODE_END) {
-            struct vpe_instr *instr = tgsi_to_vpe(vpe, &tgsi->FullToken.FullInstruction);
+         if (parser.FullToken.FullInstruction.Instruction.Opcode != TGSI_OPCODE_END) {
+            struct vpe_instr *instr = tgsi_to_vpe(vpe, &parser.FullToken.FullInstruction);
             list_addtail(&instr->link, &vpe->instructions);
          }
          break;

@@ -127,12 +127,12 @@ compile_tgsi(const char *filename)
    struct tegra_fp_shader fp;
    switch (parser.FullHeader.Processor.Processor) {
    case PIPE_SHADER_VERTEX:
-      tegra_tgsi_to_vpe(&vpe, &parser);
+      tegra_tgsi_to_vpe(&vpe, toks);
       dump_vpe_shader(&vpe);
       break;
 
    case PIPE_SHADER_FRAGMENT:
-      tegra_tgsi_to_fp(&fp, &parser);
+      tegra_tgsi_to_fp(&fp, toks);
       dump_fp_shader(&fp);
       break;
 
