@@ -48,13 +48,15 @@ read_file(const char *filename, void **ptr, size_t *size)
    return 0;
 }
 
-static void print_usage(void)
+static void
+print_usage(void)
 {
    printf("Usage: tegra_compiler [OPTIONS]... <file.tgsi>\n");
    printf("    --help            - show this message\n");
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
    int n;
    for (n = 1; n < argc; ++n) {
