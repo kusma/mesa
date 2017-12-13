@@ -52,7 +52,7 @@ files_libtegra = files(
 
 libtegra = static_library(
   'tegra',
-  [files_libtegra],
+  [files_libtegra, nir_opcodes_h],
   include_directories : [
     inc_src, inc_include, inc_gallium, inc_gallium_aux,
     inc_gallium_drivers, inc_drm_uapi,
@@ -69,7 +69,7 @@ tegra_compiler = executable(
   include_directories : [
     inc_src, inc_include, inc_gallium, inc_gallium_aux
   ],
-  link_with : [libtegra, libgallium, libmesa_util],
+  link_with : [libtegra, libgallium, libmesa_util, libnir],
   build_by_default : false,
 )
 
