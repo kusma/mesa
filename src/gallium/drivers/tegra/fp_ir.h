@@ -13,11 +13,11 @@ enum fp_alu_op {
    FP_ALU_OP_CSEL = 3
 };
 
-enum fp_scale {
-   FP_SCALE_NONE = 0,
-   FP_SCALE_MUL2 = 1,
-   FP_SCALE_MUL4 = 2,
-   FP_SCALE_DIV2 = 3
+enum fp_dst_scale {
+   FP_DST_SCALE_NONE = 0,
+   FP_DST_SCALE_MUL2 = 1,
+   FP_DST_SCALE_MUL4 = 2,
+   FP_DST_SCALE_DIV2 = 3
 };
 
 enum fp_condition {
@@ -32,6 +32,7 @@ struct fp_alu_dst_operand {
    bool write_high_sub_reg;
    unsigned index;
    bool saturate;
+   enum fp_dst_scale scale;
 };
 
 enum fp_datatype {
@@ -53,7 +54,6 @@ struct fp_alu_instr {
    enum fp_condition condition;
 
    enum fp_alu_op op;
-   enum fp_scale scale;
 
    struct fp_alu_dst_operand dst;
    struct fp_alu_src_operand src[4];
