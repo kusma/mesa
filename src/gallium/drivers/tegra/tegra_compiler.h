@@ -15,7 +15,8 @@ struct tegra_vpe_shader {
 
 enum fpir_node_type {
    FPIR_VAR_NODE,
-   FPIR_ALU_NODE
+   FPIR_ALU_NODE,
+   FPIR_IMM_NODE
 };
 
 struct fpir_node {
@@ -29,6 +30,9 @@ struct fpir_node {
          enum fp_alu_op op;
          struct fpir_node *src[4];
       } alu;
+      struct {
+         float value;
+      } imm;
    };
 };
 

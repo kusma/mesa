@@ -39,18 +39,34 @@ get_src(struct tegra_fp_shader *fp, nir_src *src)
    return entry->data;
 }
 
+static struct fpir_node *
+emit_imm(struct tegra_fp_shader *fp, float value)
+{
+   struct fpir_node *node = create_fpir_node(fp, FPIR_IMM_NODE);
+   node->imm.value = value;
+   return node;
+}
+
 static void
 emit_mov(struct tegra_fp_shader *fp, nir_alu_instr *alu)
 {
    assert(nir_op_infos[alu->op].num_inputs == 1);
    struct fpir_node *src = get_src(fp, &alu->src[0].src);
 
+   struct fpir_node *zero = emit_imm(fp, 0.0f);
+   struct fpir_node *one = emit_imm(fp, 1.0f);
+
    assert(!alu->dest.dest.is_ssa);
    nir_register *dest = alu->dest.dest.reg.reg;
-   printf("move\n");
    for (int i = 0; i < dest->num_components; ++i) {
-      if ((alu->dest.write_mask >> i) & 1)
-         printf("comp %d\n", i);
+      if ((alu->dest.write_mask >> i) & 1) {
+         struct fpir_node *node = create_fpir_node(fp, FPIR_ALU_NODE);
+         node->alu.op = FP_ALU_OP_MAD;
+         node->alu.src[0] = src;
+         node->alu.src[1] = one;
+         node->alu.src[2] = zero;
+         node->alu.src[3] = zero;
+      }
    }
 }
 
@@ -288,6 +304,24 @@ tegra_nir_to_fp(struct tegra_fp_shader *fp, nir_shader *s)
    ra_add_reg_conflict(regs, 3, 17);
 
    ra_set_finalize(regs, NULL);
+
+   list_for_each_entry(struct fpir_node, node, &fp->nodes, link)
+   {
+      switch (node->type)
+      {
+      case FPIR_VAR_NODE:
+         printf("VAR: %d\n", node->var.index);
+         break;
+
+      case FPIR_ALU_NODE:
+         printf("ALU %d!\n", node->alu.op);
+         break;
+
+      case FPIR_IMM_NODE:
+         printf("IMM: %f\n", node->imm.value);
+         break;
+      }
+   }
 }
 
 static const nir_shader_compiler_options options = {
